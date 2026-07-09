@@ -287,6 +287,7 @@ body{
   <button class="view-btn" id="tabRecords" onclick="showTab('records')">记录</button>
   <button class="view-btn" onclick="exportData()">📥 导出</button>
   <button class="view-btn" onclick="document.getElementById('importInput').click()">📤 导入</button>
+  <button class="view-btn" onclick="syncFromServer();showToast('同步中…')">☁️ 同步</button>
   <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
 </div>
 
@@ -362,6 +363,7 @@ body{
 const STORAGE_KEY = 'riji_90day_checkin';
 const START_DATE = '2026-07-09';
 const TOTAL_DAYS = 90;
+const SYNC_URL = 'https://316617c6c77838b5-112-65-11-237.serveousercontent.com';
 
 function getData(){
   try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch{return{}}
@@ -437,10 +439,47 @@ function submitCheckin(){
   };
   data[key]=entry;
   saveData(data);
-  showToast('Day '+entry.day+' 已保存');
+  
+  // 同步到云端
+  syncToServer([entry]);
+  
+  showToast('Day '+entry.day+' 已保存 ✓ 已同步云端');
   askedVal='';
   resetForm();
   renderAll();
+}
+
+function syncToServer(entries){
+  if(!SYNC_URL) return;
+  fetch(SYNC_URL+'/api/data',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(entries)
+  }).catch(function(){});
+}
+
+function syncFromServer(){
+  if(!SYNC_URL) return;
+  fetch(SYNC_URL+'/api/data')
+    .then(function(r){return r.json()})
+    .then(function(remote){
+      var local=getData();
+      var count=0;
+      for(var key in remote){
+        if(!local[key]){
+          local[key]=remote[key];
+          count++;
+        }
+      }
+      if(count>0){
+        saveData(local);
+        showToast('已同步 '+count+' 条云端记录');
+        renderAll();
+        renderCalendar();
+        renderRecords();
+      }
+    })
+    .catch(function(){});
 }
 
 function resetForm(){
@@ -541,6 +580,8 @@ function showTab(tab){
 
 function renderAll(){
   renderHeader();
+  // 启动时自动从云端拉取
+  setTimeout(syncFromServer,500);
 }
 
 function exportData(){
