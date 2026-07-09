@@ -288,7 +288,10 @@ body{
   <button class="view-btn" onclick="exportData()">📥 导出</button>
   <button class="view-btn" onclick="document.getElementById('importInput').click()">📤 导入</button>
   <button class="view-btn" onclick="syncFromServer();showToast('同步中…')">☁️ 同步</button>
+  <button class="view-btn" onclick="genBackupCode()">🔐 生成备份码</button>
+  <button class="view-btn" onclick="document.getElementById('restoreInput').click()">🔓 恢复备份</button>
   <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
+  <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="importData(event)">
 </div>
 
 <!-- 打卡区 -->
@@ -646,6 +649,35 @@ function importData(event){
   };
   reader.readAsText(file);
   event.target.value='';
+}
+
+// ---------- 备份码功能（微信等受限浏览器可用） ----------
+function genBackupCode(){
+  var data=JSON.parse(localStorage.getItem('riji_90day_checkin'))||{};
+  var entries=Object.values(data);
+  if(entries.length===0){
+    showToast('没有打卡记录可备份');
+    return;
+  }
+  // 弹窗显示备份码
+  var code=document.createElement('textarea');
+  code.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:90%;max-width:400px;height:200px;background:#16213e;color:#ccd6f6;border:1px solid #e2b97a;border-radius:12px;padding:12px;font-size:12px;z-index:9999;resize:none';
+  code.value=JSON.stringify(entries);
+  code.readOnly=true;
+  
+  var closeBtn=document.createElement('button');
+  closeBtn.textContent='✕ 关闭';
+  closeBtn.style.cssText='position:fixed;top:calc(50% + 110px);left:50%;transform:translate(-50%,0);background:#e2b97a;color:#1a1a2e;border:none;border-radius:20px;padding:8px 24px;font-size:14px;cursor:pointer;z-index:9999';
+  closeBtn.onclick=function(){
+    document.body.removeChild(code);
+    document.body.removeChild(closeBtn);
+  };
+  
+  document.body.appendChild(code);
+  document.body.appendChild(closeBtn);
+  code.select();
+  document.execCommand('copy');
+  showToast('已复制 '+entries.length+' 条备份码到剪贴板，可以粘贴发给文件传输助手');
 }
 
 // init
