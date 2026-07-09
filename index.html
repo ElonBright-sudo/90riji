@@ -460,6 +460,17 @@ function syncToServer(entries){
 
 function syncFromServer(){
   if(!SYNC_URL) return;
+  // 先把本地数据推上去
+  var local=getData();
+  var localEntries=Object.values(local);
+  if(localEntries.length>0){
+    fetch(SYNC_URL+'/api/data',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(localEntries)
+    }).catch(function(){});
+  }
+  // 再拉云端数据下来
   fetch(SYNC_URL+'/api/data')
     .then(function(r){return r.json()})
     .then(function(remote){
@@ -473,10 +484,12 @@ function syncFromServer(){
       }
       if(count>0){
         saveData(local);
-        showToast('已同步 '+count+' 条云端记录');
+        showToast('☁️ 已同步 | 本地推了 '+localEntries.length+' 条，拉了 '+count+' 条');
         renderAll();
         renderCalendar();
         renderRecords();
+      } else {
+        showToast('☁️ 已同步 | 已推 '+localEntries.length+' 条');
       }
     })
     .catch(function(){});
