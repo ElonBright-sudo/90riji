@@ -286,6 +286,8 @@ body{
   <button class="view-btn" id="tabView" onclick="showTab('view')">日历</button>
   <button class="view-btn" id="tabRecords" onclick="showTab('records')">记录</button>
   <button class="view-btn" onclick="exportData()">📥 导出</button>
+  <button class="view-btn" onclick="document.getElementById('importInput').click()">📤 导入</button>
+  <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
 </div>
 
 <!-- 打卡区 -->
@@ -556,6 +558,40 @@ function exportData(){
   a.click();
   URL.revokeObjectURL(url);
   showToast('已导出 '+entries.length+' 条记录');
+}
+
+function importData(event){
+  const file=event.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const entries=JSON.parse(e.target.result);
+      if(!Array.isArray(entries)){
+        showToast('文件格式不对，请导出正确的JSON文件');
+        return;
+      }
+      const data=JSON.parse(localStorage.getItem('riji_90day_checkin'))||{};
+      let count=0;
+      entries.forEach(function(entry){
+        if(entry.date&&entry.day){
+          if(!data[entry.date]){
+            data[entry.date]=entry;
+            count++;
+          }
+        }
+      });
+      localStorage.setItem('riji_90day_checkin',JSON.stringify(data));
+      showToast('成功导入 '+count+' 条新记录（重复已跳过）');
+      renderAll();
+      renderCalendar();
+      renderRecords();
+    }catch(err){
+      showToast('文件解析失败：'+err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value='';
 }
 
 // init
