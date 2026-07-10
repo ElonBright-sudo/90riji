@@ -466,10 +466,24 @@ function submitCheckin(){
   data[key]=entry;
   saveData(data);
   
-  // 同步到云端
-  syncToServer([entry]);
+  // 优先保存到本地服务器（局域网直连），失败再走云端隧道
+  var serverUrl=typeof SERVER_URL!=='undefined'?SERVER_URL:null;
+  if(serverUrl){
+    fetch(serverUrl+'/api/data',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify([entry])
+    }).then(function(){showToast('Day '+entry.day+' 已保存 ✓ 已同步到电脑')})
+    .catch(function(){
+      // 局域网不通，走云端隧道
+      syncToServer([entry]);
+      showToast('Day '+entry.day+' 已保存 ✓');
+    });
+  } else {
+    syncToServer([entry]);
+    showToast('Day '+entry.day+' 已保存 ✓');
+  }
   
-  showToast('Day '+entry.day+' 已保存 ✓ 已同步云端');
   askedVal='';
   resetForm();
   renderAll();
