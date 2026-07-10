@@ -649,8 +649,31 @@ function showTab(tab){
 
 function renderAll(){
   renderHeader();
-  // 启动时自动从云端拉取
-  setTimeout(syncFromServer,500);
+  // 从服务器拉取已有数据（局域网直连时）
+  loadFromServer();
+}
+
+function loadFromServer(){
+  const serverUrl=typeof SERVER_URL!=='undefined'?SERVER_URL:null;
+  if(!serverUrl) return;
+  fetch(serverUrl+'/api/data')
+    .then(function(r){return r.json()})
+    .then(function(remote){
+      const local=getData();
+      let count=0;
+      for(const key in remote){
+        if(!local[key]){
+          local[key]=remote[key];
+          count++;
+        }
+      }
+      if(count>0){
+        saveData(local);
+        renderCalendar();
+        renderRecords();
+      }
+    })
+    .catch(function(){});
 }
 
 function exportData(){
