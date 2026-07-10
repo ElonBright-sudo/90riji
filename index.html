@@ -290,8 +290,26 @@ body{
   <button class="view-btn" onclick="syncFromServer();showToast('同步中…')">☁️ 同步</button>
   <button class="view-btn" onclick="genBackupCode()">🔐 生成备份码</button>
   <button class="view-btn" onclick="document.getElementById('restoreInput').click()">🔓 恢复备份</button>
+  <button class="view-btn" onclick="showSyncConfig()">⚙️ 地址</button>
   <input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
   <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="importData(event)">
+</div>
+
+<!-- 同步地址设置 -->
+<div id="syncConfigPanel" class="hidden card" style="margin-bottom:12px">
+  <div class="card-title">同步地址设置</div>
+  <div class="form-group">
+    <label>☁️ 同步服务器地址</label>
+    <input type="text" id="syncUrlInput" value="" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;padding:10px;font-family:monospace">
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="view-btn" onclick="saveSyncConfig()" style="color:var(--green)">保存</button>
+    <button class="view-btn" onclick="document.getElementById('syncConfigPanel').classList.add('hidden')">取消</button>
+  </div>
+  <div style="margin-top:10px;font-size:11px;color:var(--dim);line-height:1.6">
+    当你 Mac 端的隧道重新连接后，地址变了就在这里改。<br>
+    默认地址从代码读取，设置后本地会记住。
+  </div>
 </div>
 
 <!-- 打卡区 -->
@@ -364,9 +382,14 @@ body{
 
 <script>
 const STORAGE_KEY = 'riji_90day_checkin';
+const SYNC_CONFIG_KEY = 'riji_sync_url';
 const START_DATE = '2026-07-09';
 const TOTAL_DAYS = 90;
-const SYNC_URL = 'https://fast-hound-32.loca.lt';
+const DEFAULT_SYNC_URL = 'https://sweet-firefox-89.loca.lt';
+
+function getSyncUrl(){
+  try{return localStorage.getItem(SYNC_CONFIG_KEY)||DEFAULT_SYNC_URL}catch{return DEFAULT_SYNC_URL}
+}
 
 function getData(){
   try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||{}}catch{return{}}
@@ -453,8 +476,9 @@ function submitCheckin(){
 }
 
 function syncToServer(entries){
-  if(!SYNC_URL) return;
-  fetch(SYNC_URL+'/api/data',{
+  const url=getSyncUrl();
+  if(!url) return;
+  fetch(url+'/api/data',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify(entries)
@@ -462,19 +486,20 @@ function syncToServer(entries){
 }
 
 function syncFromServer(){
-  if(!SYNC_URL) return;
+  var syncUrl=getSyncUrl();
+  if(!syncUrl) return;
   // 先把本地数据推上去
   var local=getData();
   var localEntries=Object.values(local);
   if(localEntries.length>0){
-    fetch(SYNC_URL+'/api/data',{
+    fetch(syncUrl+'/api/data',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(localEntries)
     }).catch(function(){});
   }
   // 再拉云端数据下来
-  fetch(SYNC_URL+'/api/data')
+  fetch(syncUrl+'/api/data')
     .then(function(r){return r.json()})
     .then(function(remote){
       var local=getData();
@@ -496,6 +521,20 @@ function syncFromServer(){
       }
     })
     .catch(function(){});
+}
+
+function showSyncConfig(){
+  var panel=document.getElementById('syncConfigPanel');
+  document.getElementById('syncUrlInput').value=getSyncUrl();
+  panel.classList.remove('hidden');
+}
+function saveSyncConfig(){
+  var val=document.getElementById('syncUrlInput').value.trim();
+  if(val){
+    localStorage.setItem(SYNC_CONFIG_KEY,val);
+    showToast('✅ 同步地址已保存');
+    document.getElementById('syncConfigPanel').classList.add('hidden');
+  }
 }
 
 function resetForm(){
