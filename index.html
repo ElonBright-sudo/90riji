@@ -327,7 +327,25 @@ function showETab(t){document.querySelectorAll('#pageEvening .view-btn').forEach
 if(t==='check'){document.getElementById('eTabCheck').classList.add('active-gold');document.getElementById('ePanelCheck').classList.remove('hidden')}
 else if(t==='view'){document.getElementById('eTabView').classList.add('active-gold');document.getElementById('ePanelView').classList.remove('hidden');eCal()}
 else{document.getElementById('eTabRecords').classList.add('active-gold');document.getElementById('ePanelRecords').classList.remove('hidden');eRec()}}
-function eRenderAll(){eHeader();if(!document.getElementById('ePanelView').classList.contains('hidden'))eCal();if(!document.getElementById('ePanelRecords').classList.contains('hidden'))eRec()}
+function eRenderAll(){
+  // 自动迁移旧数据（riji_90day_checkin → riji_evening_checkin）
+  if(!localStorage.getItem('_ev_migrated')){
+    var oldData=JSON.parse(localStorage.getItem('riji_90day_checkin'))||{};
+    var newData=eGet();
+    var count=0;
+    for(var k in oldData){
+      if(!newData[k]&&oldData[k].date){
+        newData[k]=oldData[k];
+        count++;
+      }
+    }
+    if(count>0){
+      eSet(newData);
+      toast('已迁移 '+count+' 条旧打卡记录','toast-gold');
+    }
+    localStorage.setItem('_ev_migrated','1');
+  }
+  eHeader();if(!document.getElementById('ePanelView').classList.contains('hidden'))eCal();if(!document.getElementById('ePanelRecords').classList.contains('hidden'))eRec()}
 
 function eExport(){const d=JSON.parse(localStorage.getItem(EK))||{};const es=Object.values(d).sort((a,b)=>a.timestamp.localeCompare(b.timestamp));if(!es.length){toast('没有记录可导出','toast-gold');return}
 const b=new Blob([JSON.stringify(es,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='evening-'+tKey()+'.json';a.click();URL.revokeObjectURL(u);toast('已导出','toast-gold')}
