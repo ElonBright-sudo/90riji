@@ -262,7 +262,7 @@ function dSubmit(){
   const k=tKey();const d=dGet();if(d[k]&&!confirm('今天已记过梦，覆盖吗？'))return;
   const b=document.getElementById('dBody').value.trim();const s=document.getElementById('dScene').value.trim();const t=document.getElementById('dStory').value.trim();
   if(!b&&!s&&!t){toast('写点什么再提交吧','toast-purple');return}
-  d[k]={date:k,dreamBody:b,dreamScene:s,dreamStory:t,timestamp:new Date().toISOString()};dSet(d);syncLocal(d[k]);
+  d[k]={date:k,dreamBody:b,dreamScene:s,dreamStory:t,timestamp:new Date().toISOString()};dSet(d);showFeedback('dream',d[k]);syncLocal(d[k]);
   toast('梦记已保存 ✓','toast-purple');
   document.getElementById('dBody').value='';document.getElementById('dScene').value='';document.getElementById('dStory').value='';
   dRenderAll();
@@ -317,7 +317,7 @@ function eSubmit(){
   const s=document.getElementById('eSelf').value.trim();const b=document.getElementById('eBody').value.trim();
   const bf=document.getElementById('eBodyFeel').value.trim();const em=document.getElementById('eEmotion').value.trim();const t=document.getElementById('eThought').value.trim();
   if(!s&&!b&&!bf&&!em&&!t&&!eAsked){toast('写点什么再提交吧','toast-gold');return}
-  d[k]={date:k,day:eToday(),self:s,body:b,asked:eAsked,bodyFeel:bf,emotion:em,thought:t,timestamp:new Date().toISOString()};eSet(d);syncLocal(d[k]);
+  d[k]={date:k,day:eToday(),self:s,body:b,asked:eAsked,bodyFeel:bf,emotion:em,thought:t,timestamp:new Date().toISOString()};eSet(d);showFeedback('evening',d[k]);syncLocal(d[k]);
   toast('Day '+eToday()+' 已保存 ✓','toast-gold');eAsked='';
   document.getElementById('eSelf').value='';document.getElementById('eBody').value='';document.getElementById('eBodyFeel').value='';document.getElementById('eEmotion').value='';document.getElementById('eThought').value='';
   document.querySelectorAll('#pageEvening .check-item').forEach(c=>c.classList.remove('active-yes','active-no'));eAsked='';eRenderAll();
@@ -362,16 +362,71 @@ function eBackup(){const d=JSON.parse(localStorage.getItem(EK))||{};const es=Obj
 const j=JSON.stringify(es);const o=document.createElement('div');o.className='modal-overlay';o.onclick=function(ev){if(ev.target===o)document.body.removeChild(o)};
 o.innerHTML='<div class="modal-box" style="border-color:var(--gold)"><div class="modal-title" style="color:var(--gold)">🔐 备份码</div><p style="font-size:12px;color:var(--dim);margin-bottom:10px">复制后到另一台设备点「📤 导入」</p><textarea id="eCode" readonly>'+j+'</textarea><div class="modal-actions"><button class="btn-pri-gold" onclick="document.getElementById(\'eCode\').select();document.execCommand(\'copy\');toast(\'已复制\',\'toast-gold\')">📋 复制</button><button class="btn-sec" onclick="this.closest(\'.modal-overlay\').remove()">关闭</button></div></div>';document.body.appendChild(o);const ta=document.getElementById('eCode');ta.select();try{document.execCommand('copy');toast('已复制到剪贴板','toast-gold')}catch(e){}}
 
-// 本地同步：在家时自动存到Mac本地
+// 打卡反馈——梦记用完形，晚间用八正道
+function showFeedback(type, entry){
+  var el=document.createElement('div');el.className='modal-overlay';el.onclick=function(ev){if(ev.target===el)document.body.removeChild(el)};
+  var now=new Date();var h=now.getHours();
+  var timeWord=h<6?'夜深了':h<9?'清晨':h<12?'上午':h<14?'中午':h<18?'下午':h<21?'傍晚':'夜深了';
+  var c='';
+  if(type==='dream'){
+    var b=entry.dreamBody||'';var s=entry.dreamScene||'';var st=entry.dreamStory||'';
+    var gestaltNote='';
+    if(s||st) gestaltNote='梦里出现的画面和故事，是你自己的一部分在和你说话。不急着解读，先让它在那里。';
+    else if(b) gestaltNote='醒来时身体的感受，是此刻最真实的讯号。不带评判地留意它，就已经在觉察了。';
+    else gestaltNote='没有梦，也没有关系。完形说：觉察本身就是疗愈。';
+    c='<div style="text-align:center;margin-bottom:16px"><span style="font-size:48px">🌅</span></div>'
+    +'<div class="modal-title" style="color:var(--purple)">晨间梦记 · 已保存</div>'
+    +'<div style="font-size:13px;line-height:1.8;padding:0 8px">'
+    +'<div style="background:rgba(180,140,220,0.08);border-radius:10px;padding:12px;margin:8px 0;font-size:12px">'
+    +(b?'<div><span style="color:var(--purple)">① </span>'+esc(b)+'</div>':'')
+    +(s?'<div style="margin-top:4px"><span style="color:var(--purple)">② </span>'+esc(s)+'</div>':'')
+    +(st?'<div style="margin-top:4px"><span style="color:var(--purple)">③ </span>'+esc(st)+'</div>':'')
+    +'</div>'
+    +'<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pborder)">'
+    +'<div style="color:var(--purple);font-size:11px;margin-bottom:4px">⭕ 完形视角</div>'
+    +'<div style="color:var(--dim);font-style:italic;font-size:12px">'+gestaltNote+'</div>'
+    +'</div></div>';
+  } else {
+    var self=entry.self||'';var body=entry.body||'';var feel=entry.bodyFeel||'';var em=entry.emotion||'';var thought=entry.thought||'';
+    // 选一条八正道
+    var paths=[
+      {name:'正见',desc:'如实地看见自己今天的状态，不美化也不否定——这就是正见。'},
+      {name:'正思维',desc:'你今天的念头在往哪个方向走？觉察它，而不被它带走。'},
+      {name:'正语',desc:'今天对自己说的话，是否温柔？'},
+      {name:'正业',desc:'今天做的事，是滋养自己的，还是消耗自己的？'},
+      {name:'正命',desc:'今天的生活方式，靠近你想要的活法吗？'},
+      {name:'正精进',desc:'今天你为自己做的那件事，无论大小，都是正精进。'},
+      {name:'正念',desc:'觉察身体、情绪、念头——你已在正念中。'},
+      {name:'正定',desc:'今天哪怕有片刻的专注或宁静，就是正定。'}
+    ];
+    var idx=entry.day%paths.length;
+    var p=paths[idx];
+    var note='';
+    if(!self&&!body) note='今天什么都没写也没关系。觉察本身就是修行。';
+    else if(em.indexOf('平静')>=0||em.indexOf('轻松')>=0||em.indexOf('愉悦')>=0) note='心平即是福田。';
+    else if(em.indexOf('累')>=0||em.indexOf('疲惫')>=0) note='累了就休息，身体比头脑更懂正精进。';
+    else note='如实看见今天，就是正见开始的地方。';
+    c='<div style="text-align:center;margin-bottom:16px"><span style="font-size:48px">🌙</span></div>'
+    +'<div class="modal-title">Day '+entry.day+' · 已保存</div>'
+    +'<div style="font-size:13px;line-height:1.8;padding:0 8px">'
+    +(self||body?'<div style="background:rgba(226,185,122,0.08);border-radius:10px;padding:12px;margin:8px 0;font-size:12px">':'')
+    +(self?'<div>✦ '+esc(self.slice(0,60))+(self.length>60?'…':'')+'</div>':'')
+    +(body?'<div style="margin-top:4px">✦ '+esc(body.slice(0,60))+(body.length>60?'…':'')+'</div>':'')
+    +(self||body?'</div>':'')
+    +'<div style="color:var(--dim);font-style:italic;font-size:12px;margin-top:4px">'+note+'</div>'
+    +'<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">'
+    +'<div style="color:var(--gold);font-size:11px;margin-bottom:4px">🛤️ 八正道 · '+p.name+'</div>'
+    +'<div style="color:var(--dim);font-style:italic;font-size:12px">'+p.desc+'</div>'
+    +'</div>'
+    +'<div style="text-align:center;margin-top:12px;font-size:11px;color:var(--dim)">第 '+entry.day+' / 90 · '+Math.round(entry.day/90*100)+'%</div></div>';
+  }
+  el.innerHTML='<div class="modal-box"><div style="max-height:60vh;overflow-y:auto">'+c+'</div><div class="modal-actions"><button class="btn-pri-gold" onclick="this.closest(\'.modal-overlay\').remove()">好</button></div></div>';
+  document.body.appendChild(el);
+}
+
+// 本地同步
 function syncLocal(entry){
-  try{
-    var x=new XMLHttpRequest();
-    x.open('POST','http://localhost:3456/api/data',true);
-    x.setRequestHeader('Content-Type','application/json');
-    x.onload=function(){if(x.status===200){var r=JSON.parse(x.responseText);console.log('💾 本地已备份，共'+r.total+'条')}};
-    x.onerror=function(){};
-    x.send(JSON.stringify([entry]));
-  }catch(e){}
+  try{var x=new XMLHttpRequest();x.open('POST','http://localhost:3456/api/data',true);x.setRequestHeader('Content-Type','application/json');x.onload=function(){if(x.status===200)console.log('💾 本地已备份')};x.onerror=function(){};x.send(JSON.stringify([entry]))}catch(e){}
 }
 
 function esc(s){return s.replace(/</g,'&lt;').replace(/>/g,'&gt;')}
