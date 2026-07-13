@@ -122,7 +122,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
       <div class="desc">正见 · 正思维 · 三界觉察</div>
     </div>
     <div class="entry-footer">
-      AxureShow · 跨设备用备份码同步
+      AxureShow · 数据存云端，跨设备同步
     </div>
   </div>
 </div>
@@ -222,6 +222,29 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 <div class="toast" id="toast"></div>
 
 <script>
+// ===== 内嵌数据：首次加载时自动导入 =====
+(function(){
+  // 晚间日课数据（riji_evening_checkin）
+  var EVENING_DATA = {"2026-07-09":{"date":"2026-07-09","day":1,"self":"今天又工作到了晚上 10:30。白天和房总他们一起过健康小屋的细节。晚上回来去赶遨翔的作业。本来晚上还想练会琴的，但是 10:30 了，练不了了。那今天为自己做了一件事情，是早上起床的时候洗漱完就想着去上班了。然后突然意识到我已经很累了，我可以在家里多待一会，可以晚点上班，因为今天我还有各种接待的事情。就留在家里多待了一个小时，然后练了半个多小时的琴，感觉很开心。","body":"晚上回到家的时候感觉挺疲惫的，但是明天又要交遨翔的作业。哎，想想还是把它做了吧。身体的信号是肩膀很紧很沉，然后感觉累，早点睡觉。","asked":"问了","bodyFeel":"身体的感受是肩膀很，肩膀有点酸，背部有点胀。","emotion":"情绪是平静的。","thought":"想法是，我累了，我想早点睡觉了。明天早上还要做采访，明天又是一个忙碌的一天。不过马上就要到周末了，周末需要给自己多一点时间，好好休息。","timestamp":"2026-07-09T14:29:59.458Z"},"2026-07-10":{"date":"2026-07-10","day":2,"self":"今天上午做了宝藏团顾客访谈，下午处理了健康小屋合同，开了氧习惯小程序的会议，开了部门周会。晚上回南通了，火车上写总结，写内部 AI 培训课件。还没有为自己做些啥，计划到站之前完成所有内容，下车后就开启休息模式，不处理工作。","body":"心情不错，干完就可以休息了。身体肩膀有点紧，头脑没什么想法。","asked":"问了","bodyFeel":"肩膀有点紧","emotion":"平静中有点期待","thought":"下车后开启周末模式","timestamp":"2026-07-10T14:00:00Z"},"2026-07-11":{"date":"2026-07-11","day":3,"self":"今天彻底休息，睡懒觉。让身体自己做主，想睡就睡。没有安排任何工作，真正把周末还给了自己。","body":"身体还有点累，睡醒了也还没完全恢复。","asked":"问了","bodyFeel":"身体还有点累","emotion":"平静","thought":"还要再睡睡","timestamp":"2026-07-11T14:00:00Z"},"2026-07-12":{"date":"2026-07-12","day":4,"self":"上午睡到自然醒，练了半小时琴。和娃一起做麻薯糕点，整个过程很放松，没有赶时间，没有想着工作。今天所有事都是为自己和家人在做。","body":"轻松，无事一身轻。","asked":"问了","bodyFeel":"轻松","emotion":"愉悦","thought":"再休息两天就满血了","timestamp":"2026-07-12T14:00:00Z"}};
+
+  // 晨间梦记数据（riji_dream_checkin）
+  var DREAM_DATA = {"2026-07-13":{"date":"2026-07-13","dreamBody":"总体轻松，小腿肚子有点紧绷。心情愉悦","dreamScene":"无梦","dreamStory":"无梦","timestamp":"2026-07-13T00:00:00Z"}};
+
+  var ek = 'riji_evening_checkin';
+  var dk = 'riji_dream_checkin';
+  var ed = JSON.parse(localStorage.getItem(ek) || '{}');
+  var dd = JSON.parse(localStorage.getItem(dk) || '{}');
+  var ec = 0, dc = 0;
+
+  for (var k in EVENING_DATA) { if (!ed[k]) { ed[k] = EVENING_DATA[k]; ec++; } }
+  for (var k in DREAM_DATA) { if (!dd[k]) { dd[k] = DREAM_DATA[k]; dc++; } }
+
+  if (ec > 0) localStorage.setItem(ek, JSON.stringify(ed));
+  if (dc > 0) localStorage.setItem(dk, JSON.stringify(dd));
+
+  console.log('📦 自动导入：晚间日课 ' + ec + ' 条，晨间梦记 ' + dc + ' 条');
+})();
+
 // ===== 导航 =====
 function goTo(page){['pageEntry','pageDream','pageEvening'].forEach(p=>document.getElementById(p).classList.add('hidden'));document.getElementById('page'+page.charAt(0).toUpperCase()+page.slice(1)).classList.remove('hidden');if(page==='dream'){dRenderAll()}else if(page==='evening'){eRenderAll()}}
 
@@ -239,7 +262,7 @@ function dSubmit(){
   const k=tKey();const d=dGet();if(d[k]&&!confirm('今天已记过梦，覆盖吗？'))return;
   const b=document.getElementById('dBody').value.trim();const s=document.getElementById('dScene').value.trim();const t=document.getElementById('dStory').value.trim();
   if(!b&&!s&&!t){toast('写点什么再提交吧','toast-purple');return}
-  d[k]={date:k,dreamBody:b,dreamScene:s,dreamStory:t,timestamp:new Date().toISOString()};dSet(d);
+  d[k]={date:k,dreamBody:b,dreamScene:s,dreamStory:t,timestamp:new Date().toISOString()};dSet(d);syncLocal(d[k]);
   toast('梦记已保存 ✓','toast-purple');
   document.getElementById('dBody').value='';document.getElementById('dScene').value='';document.getElementById('dStory').value='';
   dRenderAll();
@@ -294,7 +317,7 @@ function eSubmit(){
   const s=document.getElementById('eSelf').value.trim();const b=document.getElementById('eBody').value.trim();
   const bf=document.getElementById('eBodyFeel').value.trim();const em=document.getElementById('eEmotion').value.trim();const t=document.getElementById('eThought').value.trim();
   if(!s&&!b&&!bf&&!em&&!t&&!eAsked){toast('写点什么再提交吧','toast-gold');return}
-  d[k]={date:k,day:eToday(),self:s,body:b,asked:eAsked,bodyFeel:bf,emotion:em,thought:t,timestamp:new Date().toISOString()};eSet(d);
+  d[k]={date:k,day:eToday(),self:s,body:b,asked:eAsked,bodyFeel:bf,emotion:em,thought:t,timestamp:new Date().toISOString()};eSet(d);syncLocal(d[k]);
   toast('Day '+eToday()+' 已保存 ✓','toast-gold');eAsked='';
   document.getElementById('eSelf').value='';document.getElementById('eBody').value='';document.getElementById('eBodyFeel').value='';document.getElementById('eEmotion').value='';document.getElementById('eThought').value='';
   document.querySelectorAll('#pageEvening .check-item').forEach(c=>c.classList.remove('active-yes','active-no'));eAsked='';eRenderAll();
@@ -327,24 +350,8 @@ function showETab(t){document.querySelectorAll('#pageEvening .view-btn').forEach
 if(t==='check'){document.getElementById('eTabCheck').classList.add('active-gold');document.getElementById('ePanelCheck').classList.remove('hidden')}
 else if(t==='view'){document.getElementById('eTabView').classList.add('active-gold');document.getElementById('ePanelView').classList.remove('hidden');eCal()}
 else{document.getElementById('eTabRecords').classList.add('active-gold');document.getElementById('ePanelRecords').classList.remove('hidden');eRec()}}
+
 function eRenderAll(){
-  // 自动迁移旧数据（riji_90day_checkin → riji_evening_checkin）
-  if(!localStorage.getItem('_ev_migrated')){
-    var oldData=JSON.parse(localStorage.getItem('riji_90day_checkin'))||{};
-    var newData=eGet();
-    var count=0;
-    for(var k in oldData){
-      if(!newData[k]&&oldData[k].date){
-        newData[k]=oldData[k];
-        count++;
-      }
-    }
-    if(count>0){
-      eSet(newData);
-      toast('已迁移 '+count+' 条旧打卡记录','toast-gold');
-    }
-    localStorage.setItem('_ev_migrated','1');
-  }
   eHeader();if(!document.getElementById('ePanelView').classList.contains('hidden'))eCal();if(!document.getElementById('ePanelRecords').classList.contains('hidden'))eRec()}
 
 function eExport(){const d=JSON.parse(localStorage.getItem(EK))||{};const es=Object.values(d).sort((a,b)=>a.timestamp.localeCompare(b.timestamp));if(!es.length){toast('没有记录可导出','toast-gold');return}
@@ -355,9 +362,20 @@ function eBackup(){const d=JSON.parse(localStorage.getItem(EK))||{};const es=Obj
 const j=JSON.stringify(es);const o=document.createElement('div');o.className='modal-overlay';o.onclick=function(ev){if(ev.target===o)document.body.removeChild(o)};
 o.innerHTML='<div class="modal-box" style="border-color:var(--gold)"><div class="modal-title" style="color:var(--gold)">🔐 备份码</div><p style="font-size:12px;color:var(--dim);margin-bottom:10px">复制后到另一台设备点「📤 导入」</p><textarea id="eCode" readonly>'+j+'</textarea><div class="modal-actions"><button class="btn-pri-gold" onclick="document.getElementById(\'eCode\').select();document.execCommand(\'copy\');toast(\'已复制\',\'toast-gold\')">📋 复制</button><button class="btn-sec" onclick="this.closest(\'.modal-overlay\').remove()">关闭</button></div></div>';document.body.appendChild(o);const ta=document.getElementById('eCode');ta.select();try{document.execCommand('copy');toast('已复制到剪贴板','toast-gold')}catch(e){}}
 
+// 本地同步：在家时自动存到Mac本地
+function syncLocal(entry){
+  try{
+    var x=new XMLHttpRequest();
+    x.open('POST','http://localhost:3456/api/data',true);
+    x.setRequestHeader('Content-Type','application/json');
+    x.onload=function(){if(x.status===200){var r=JSON.parse(x.responseText);console.log('💾 本地已备份，共'+r.total+'条')}};
+    x.onerror=function(){};
+    x.send(JSON.stringify([entry]));
+  }catch(e){}
+}
+
 function esc(s){return s.replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 </script>
 </body>
-
-<!-- deploy: 2026-07-12 23:13:00 -->
+<!-- deploy: 2026-07-13 -->
 </html>
