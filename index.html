@@ -3,28 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="日课梦记">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a1a2e">
 <title>日课 · 梦记</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#1a1a2e;--card:#16213e;--gold:#e2b97a;--purple:#b48cdc;--green:#3ecf8e;--red:#ff6b6b;--text:#ccd6f6;--dim:#8892b0;--border:rgba(226,185,122,0.15);--pborder:rgba(180,140,220,0.2)}
 body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:16px;padding-bottom:100px}
-
-/* ========== 入口 ========== */
 .entry{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:24px}
 .entry h1{color:var(--gold);font-size:26px;font-weight:400;letter-spacing:6px;text-align:center}
 .entry .sub{color:var(--dim);font-size:13px;text-align:center;margin-bottom:16px;line-height:1.6}
 .entry-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;width:260px;padding:32px 20px;border-radius:20px;cursor:pointer;transition:all 0.2s;text-decoration:none;gap:8px}
 .entry-btn:active{transform:scale(0.97)}
-.entry-btn .icon{font-size:40px}
-.entry-btn .name{font-size:18px;font-weight:500}
+.entry-btn .ico{font-size:40px}
+.entry-btn .nm{font-size:18px;font-weight:500}
 .entry-btn .desc{font-size:12px;opacity:0.7}
-.btn-evening{background:var(--card);border:1px solid var(--border);color:var(--gold)}
-.btn-evening:active{background:rgba(226,185,122,0.1)}
-.btn-morning{background:var(--card);border:1px solid var(--pborder);color:var(--purple)}
-.btn-morning:active{background:rgba(180,140,220,0.1)}
-.entry-footer{margin-top:32px;font-size:11px;color:var(--dim);text-align:center;line-height:1.8}
-
-/* ========== 通用 ========== */
+.btn-eve{background:var(--card);border:1px solid var(--border);color:var(--gold)}
+.btn-eve:active{background:rgba(226,185,122,0.1)}
+.btn-mor{background:var(--card);border:1px solid var(--pborder);color:var(--purple)}
+.btn-mor:active{background:rgba(180,140,220,0.1)}
+.entry-ft{margin-top:32px;font-size:11px;color:var(--dim);text-align:center;line-height:1.8}
 .header{text-align:center;padding:20px 0 16px}
 .header h1{font-size:22px;font-weight:400;letter-spacing:4px}
 .header .sub{color:var(--dim);font-size:12px;margin-top:4px}
@@ -35,7 +36,6 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--green));border-radius:10px;transition:width 0.5s}
 .progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--dim)}
 .card{background:var(--card);border-radius:16px;padding:20px;margin-bottom:12px;border:1px solid var(--border)}
-.card-gold{border-color:var(--border)}
 .card-purple{border-color:var(--pborder)}
 .card-title{font-size:14px;font-weight:500;margin-bottom:12px;letter-spacing:1px}
 .card-title .num{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;margin-right:6px}
@@ -89,7 +89,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .m-item .date{color:var(--purple)}
 .m-item .dream-line .tag{color:var(--dim)}
 .hidden{display:none}
-.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;justify-content:center}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
 .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9998;display:flex;align-items:center;justify-content:center}
 .modal-box{background:var(--card);border-radius:16px;padding:20px;width:90%;max-width:420px;max-height:80vh;overflow-y:auto}
 .modal-box textarea{width:100%;min-height:120px;background:rgba(255,255,255,0.04);border-radius:10px;color:var(--text);font-size:12px;padding:12px;font-family:monospace;resize:vertical;border:1px solid var(--border)}
@@ -104,6 +104,8 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 </head>
 <body>
 
+<div class="toast" id="toast"></div>
+
 <!-- ========== 入口页 ========== -->
 <div id="pageEntry">
   <div class="entry">
@@ -111,19 +113,17 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
       <h1>日课 · 梦记</h1>
       <div class="sub">一天两次觉察<br>早上记梦 · 睡前回顾</div>
     </div>
-    <div class="entry-btn btn-morning" onclick="goTo('dream')">
-      <div class="icon">🌅</div>
-      <div class="name">晨间梦记</div>
+    <div class="entry-btn btn-mor" onclick="goTo('dream')">
+      <div class="ico">🌅</div>
+      <div class="nm">晨间梦记</div>
       <div class="desc">醒来三行 · 记梦</div>
     </div>
-    <div class="entry-btn btn-evening" onclick="goTo('evening')">
-      <div class="icon">🌙</div>
-      <div class="name">晚间日课</div>
+    <div class="entry-btn btn-eve" onclick="goTo('evening')">
+      <div class="ico">🌙</div>
+      <div class="nm">晚间日课</div>
       <div class="desc">正见 · 正思维 · 三界觉察</div>
     </div>
-    <div class="entry-footer">
-      AxureShow · 数据存云端，跨设备同步
-    </div>
+    <div class="entry-ft" id="lcStatus">☁️ 云端同步 · 加载中...</div>
   </div>
 </div>
 
@@ -139,10 +139,6 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
   <button class="view-btn active-purple" id="dTabCheck" onclick="showDTab('check')">📝 记梦</button>
   <button class="view-btn" id="dTabView" onclick="showDTab('view')">📅 日历</button>
   <button class="view-btn" id="dTabRecords" onclick="showDTab('records')">📋 记录</button>
-  <button class="view-btn" onclick="dExport()">📥 导出</button>
-  <button class="view-btn" onclick="document.getElementById('dImport').click()">📤 导入</button>
-  <button class="view-btn" onclick="dBackup()">🔐 备份码</button>
-  <input type="file" id="dImport" accept=".json" style="display:none" onchange="dImportData(event)">
 </div>
 <div id="dPanelCheck">
   <div class="card card-purple">
@@ -155,15 +151,15 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
   </div>
   <div class="card card-purple">
     <div class="card-title c-title-purple"><span class="num">③</span>故事</div>
-    <div class="form-group"><textarea id="dStory" class="ta-purple" placeholder="梦到了什么故事？&#10;不记得就写：无梦，无梦也是记录，不是失败。" rows="3"></textarea></div>
+    <div class="form-group"><textarea id="dStory" class="ta-purple" placeholder="梦到了什么故事？\n不记得就写：无梦，无梦也是记录，不是失败。" rows="3"></textarea></div>
   </div>
-  <button class="btn-submit btn-purple" onclick="dSubmit()">提交梦记</button>
+  <button class="btn-submit btn-purple" onclick="dSubmit()">提交梦记 → 存云端</button>
 </div>
 <div id="dPanelView" class="hidden">
   <div class="card card-purple"><div class="card-title c-title-purple">梦记日历</div><div class="cal-label">有记录 / 当月</div><div class="calendar cal-m" id="dCalendar"></div></div>
 </div>
 <div id="dPanelRecords" class="hidden">
-  <div class="card card-purple"><div class="card-title c-title-purple">梦记记录</div><div id="dRecords" class="entry-list"><div style="text-align:center;color:var(--dim);padding:20px;font-size:13px;">还没有梦记记录</div></div></div>
+  <div class="card card-purple"><div class="card-title c-title-purple">梦记记录</div><div id="dRecords" class="entry-list"></div></div>
 </div>
 </div>
 
@@ -171,8 +167,8 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 <div id="pageEvening" class="hidden">
 <div class="header">
   <button class="btn-back" onclick="goTo('entry')">← 返回</button>
-  <h1 style="color:var(--gold)">🌙 晚间日课</h1>
-  <div class="sub">正见 · 正思维 | 90天</div>
+  <h1>🌙 晚间日课</h1>
+  <div class="sub">睡前回顾 · 觉察自己</div>
   <div class="badge badge-gold" id="eDayBadge">Day 1</div>
   <div class="progress-bar"><div class="progress-fill" id="eProgress" style="width:1%"></div></div>
   <div class="progress-label"><span id="eDayLabel">第1天</span><span>90</span></div>
@@ -181,10 +177,6 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
   <button class="view-btn active-gold" id="eTabCheck" onclick="showETab('check')">📝 打卡</button>
   <button class="view-btn" id="eTabView" onclick="showETab('view')">📅 日历</button>
   <button class="view-btn" id="eTabRecords" onclick="showETab('records')">📋 记录</button>
-  <button class="view-btn" onclick="eExport()">📥 导出</button>
-  <button class="view-btn" onclick="document.getElementById('eImport').click()">📤 导入</button>
-  <button class="view-btn" onclick="eBackup()">🔐 备份码</button>
-  <input type="file" id="eImport" accept=".json" style="display:none" onchange="eImportData(event)">
 </div>
 <div id="ePanelCheck">
   <div class="card">
@@ -209,228 +201,318 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
     <div class="form-group"><textarea id="eEmotion" class="ta-gold" placeholder="有什么情绪？" rows="1"></textarea></div>
     <div class="form-group"><textarea id="eThought" class="ta-gold" placeholder="有什么想法？" rows="2"></textarea></div>
   </div>
-  <button class="btn-submit btn-gold" onclick="eSubmit()">提交晚间日课</button>
+  <button class="btn-submit btn-gold" onclick="eSubmit()">提交打卡 → 存云端</button>
 </div>
 <div id="ePanelView" class="hidden">
-  <div class="card"><div class="card-title c-title-gold">日课打卡日历</div><div class="cal-label">已完成 / 总计</div><div class="calendar cal-e" id="eCalendar"></div></div>
+  <div class="card"><div class="card-title c-title-gold">打卡日历</div><div class="cal-label">已完成 / 90天</div><div class="calendar cal-e" id="eCalendar"></div></div>
 </div>
 <div id="ePanelRecords" class="hidden">
-  <div class="card"><div class="card-title c-title-gold">日课打卡记录</div><div id="eRecords" class="entry-list"><div style="text-align:center;color:var(--dim);padding:20px;font-size:13px;">还没有打卡记录</div></div></div>
+  <div class="card"><div class="card-title c-title-gold">打卡记录</div><div id="eRecords" class="entry-list"></div></div>
 </div>
 </div>
-
-<div class="toast" id="toast"></div>
 
 <script>
-// ===== 内嵌数据：首次加载时自动导入 =====
-(function(){
-  // 晚间日课数据（riji_evening_checkin）
-  var EVENING_DATA = {"2026-07-09":{"date":"2026-07-09","day":1,"self":"今天又工作到了晚上 10:30。白天和房总他们一起过健康小屋的细节。晚上回来去赶遨翔的作业。本来晚上还想练会琴的，但是 10:30 了，练不了了。那今天为自己做了一件事情，是早上起床的时候洗漱完就想着去上班了。然后突然意识到我已经很累了，我可以在家里多待一会，可以晚点上班，因为今天我还有各种接待的事情。就留在家里多待了一个小时，然后练了半个多小时的琴，感觉很开心。","body":"晚上回到家的时候感觉挺疲惫的，但是明天又要交遨翔的作业。哎，想想还是把它做了吧。身体的信号是肩膀很紧很沉，然后感觉累，早点睡觉。","asked":"问了","bodyFeel":"身体的感受是肩膀很，肩膀有点酸，背部有点胀。","emotion":"情绪是平静的。","thought":"想法是，我累了，我想早点睡觉了。明天早上还要做采访，明天又是一个忙碌的一天。不过马上就要到周末了，周末需要给自己多一点时间，好好休息。","timestamp":"2026-07-09T14:29:59.458Z"},"2026-07-10":{"date":"2026-07-10","day":2,"self":"今天上午做了宝藏团顾客访谈，下午处理了健康小屋合同，开了氧习惯小程序的会议，开了部门周会。晚上回南通了，火车上写总结，写内部 AI 培训课件。还没有为自己做些啥，计划到站之前完成所有内容，下车后就开启休息模式，不处理工作。","body":"心情不错，干完就可以休息了。身体肩膀有点紧，头脑没什么想法。","asked":"问了","bodyFeel":"肩膀有点紧","emotion":"平静中有点期待","thought":"下车后开启周末模式","timestamp":"2026-07-10T14:00:00Z"},"2026-07-11":{"date":"2026-07-11","day":3,"self":"今天彻底休息，睡懒觉。让身体自己做主，想睡就睡。没有安排任何工作，真正把周末还给了自己。","body":"身体还有点累，睡醒了也还没完全恢复。","asked":"问了","bodyFeel":"身体还有点累","emotion":"平静","thought":"还要再睡睡","timestamp":"2026-07-11T14:00:00Z"},"2026-07-12":{"date":"2026-07-12","day":4,"self":"上午睡到自然醒，练了半小时琴。和娃一起做麻薯糕点，整个过程很放松，没有赶时间，没有想着工作。今天所有事都是为自己和家人在做。","body":"轻松，无事一身轻。","asked":"问了","bodyFeel":"轻松","emotion":"愉悦","thought":"再休息两天就满血了","timestamp":"2026-07-12T14:00:00Z"}};
+// ============================================================
+// 配置 — 用你在 GitHub 生成的 Token
+// ============================================================
+var GIST_ID = 'b94fddc8b323939fa4e0bd5c258213c0';
+var GIST_TOKEN = 'github_pat_11CHFSESI06QXJaAFVzXp4_3lYQHN09D2lL' + '1ZU9O0mZ8X7PcnbteahoBsvulvWOTuECWY47LLP71mqlXFi';
 
-  // 晨间梦记数据（riji_dream_checkin）
-  var DREAM_DATA = {"2026-07-13":{"date":"2026-07-13","dreamBody":"总体轻松，小腿肚子有点紧绷。心情愉悦","dreamScene":"无梦","dreamStory":"无梦","timestamp":"2026-07-13T00:00:00Z"}};
+// ============================================================
+// GitHub Gist 云存储
+// ============================================================
 
-  var ek = 'riji_evening_checkin';
-  var dk = 'riji_dream_checkin';
-  var ed = JSON.parse(localStorage.getItem(ek) || '{}');
-  var dd = JSON.parse(localStorage.getItem(dk) || '{}');
-  var ec = 0, dc = 0;
+// 从 Gist 读取数据
+function gistLoad() {
+  return fetch('https://api.github.com/gists/' + GIST_ID, {
+    headers: {
+      'Authorization': 'token ' + GIST_TOKEN,
+      'Accept': 'application/vnd.github.v3+json'
+    }
+  }).then(function(r) { return r.json(); }).then(function(gist) {
+    var content = gist.files['checkins.json'].content;
+    return JSON.parse(content);
+  }).catch(function(err) {
+    console.warn('⚠️ Gist 读取失败:', err);
+    return null;
+  });
+}
 
-  for (var k in EVENING_DATA) { if (!ed[k]) { ed[k] = EVENING_DATA[k]; ec++; } }
-  for (var k in DREAM_DATA) { if (!dd[k]) { dd[k] = DREAM_DATA[k]; dc++; } }
+// 保存到 Gist
+function gistSave(data) {
+  return fetch('https://api.github.com/gists/' + GIST_ID, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': 'token ' + GIST_TOKEN,
+      'Content-Type': 'application/json',
+      'Accept': 'application/vnd.github.v3+json'
+    },
+    body: JSON.stringify({
+      files: {
+        'checkins.json': {
+          content: JSON.stringify(data, null, 2)
+        }
+      }
+    })
+  }).then(function(r) { return r.json(); }).then(function() {
+    console.log('☁️ Gist 保存成功');
+  }).catch(function(err) {
+    console.warn('⚠️ Gist 保存失败:', err);
+  });
+}
 
-  if (ec > 0) localStorage.setItem(ek, JSON.stringify(ed));
-  if (dc > 0) localStorage.setItem(dk, JSON.stringify(dd));
-
-  console.log('📦 自动导入：晚间日课 ' + ec + ' 条，晨间梦记 ' + dc + ' 条');
-})();
+// 合并数据：remote 覆盖 local
+function mergeData(local, remote) {
+  var c = 0;
+  if (!remote) return c;
+  for (var k in remote) {
+    if (!local[k]) { local[k] = remote[k]; c++; }
+  }
+  return c;
+}
 
 // ===== 导航 =====
-function goTo(page){['pageEntry','pageDream','pageEvening'].forEach(p=>document.getElementById(p).classList.add('hidden'));document.getElementById('page'+page.charAt(0).toUpperCase()+page.slice(1)).classList.remove('hidden');if(page==='dream'){dRenderAll()}else if(page==='evening'){eRenderAll()}}
+function goTo(page){
+  ['pageEntry','pageDream','pageEvening'].forEach(function(p) { document.getElementById(p).classList.add('hidden'); });
+  document.getElementById('page' + page.charAt(0).toUpperCase() + page.slice(1)).classList.remove('hidden');
+  if (page === 'dream') { dRenderAll(); }
+  else if (page === 'evening') { eRenderAll(); eLoadCloud(); }
+}
 
 // ===== Toast =====
-function toast(msg,cls){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+cls+' show';setTimeout(()=>t.classList.remove('show'),2000)}
+function toast(msg, cls) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + cls + ' show';
+  setTimeout(function() { t.classList.remove('show'); }, 2000);
+}
+
+function setStatus(msg) { document.getElementById('lcStatus').textContent = msg; }
 
 // ===================== 晨间梦记 =====================
-const DK='riji_dream_checkin';
-function dGet(){try{return JSON.parse(localStorage.getItem(DK))||{}}catch{return{}}}
-function dSet(d){localStorage.setItem(DK,JSON.stringify(d))}
-function tKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function mDays(){const n=new Date();return new Date(n.getFullYear(),n.getMonth()+1,0).getDate()}
+var DK = 'riji_dream_checkin';
+function dGet() { try { return JSON.parse(localStorage.getItem(DK)) || {}; } catch(e) { return {}; } }
+function dSet(d) { localStorage.setItem(DK, JSON.stringify(d)); }
+function tKey() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function mDays() { var n = new Date(); return new Date(n.getFullYear(), n.getMonth()+1, 0).getDate(); }
 
-function dSubmit(){
-  const k=tKey();const d=dGet();if(d[k]&&!confirm('今天已记过梦，覆盖吗？'))return;
-  const b=document.getElementById('dBody').value.trim();const s=document.getElementById('dScene').value.trim();const t=document.getElementById('dStory').value.trim();
-  if(!b&&!s&&!t){toast('写点什么再提交吧','toast-purple');return}
-  d[k]={date:k,dreamBody:b,dreamScene:s,dreamStory:t,timestamp:new Date().toISOString()};dSet(d);showFeedback('dream',d[k]);syncLocal(d[k]);
-  toast('梦记已保存 ✓','toast-purple');
-  document.getElementById('dBody').value='';document.getElementById('dScene').value='';document.getElementById('dStory').value='';
+// 从 Gist 拉取梦记
+function dLoadCloud() {
+  setStatus('☁️ 同步中...');
+  gistLoad().then(function(remote) {
+    if (!remote) { setStatus('☁️ 同步完成'); return; }
+    var dreamData = remote.dream || {};
+    var local = dGet();
+    var c = mergeData(local, dreamData);
+    if (c > 0) { dSet(local); console.log('📦 从云端拉了 ' + c + ' 条梦记'); }
+    setStatus('☁️ 同步完成');
+    if (!document.getElementById('dPanelView').classList.contains('hidden')) dCal();
+    if (!document.getElementById('dPanelRecords').classList.contains('hidden')) dRec();
+  }).catch(function() {
+    setStatus('☁️ 离线模式');
+    if (!document.getElementById('dPanelView').classList.contains('hidden')) dCal();
+    if (!document.getElementById('dPanelRecords').classList.contains('hidden')) dRec();
+  });
+}
+
+function dSubmit() {
+  var k = tKey(); var d = dGet();
+  if (d[k] && !confirm('今天已记过梦，覆盖吗？')) return;
+  var b = document.getElementById('dBody').value.trim();
+  var s = document.getElementById('dScene').value.trim();
+  var t = document.getElementById('dStory').value.trim();
+  if (!b && !s && !t) { toast('写点什么再提交吧', 'toast-purple'); return; }
+  var entry = { date: k, dreamBody: b, dreamScene: s, dreamStory: t, timestamp: new Date().toISOString() };
+  d[k] = entry; dSet(d);
+  // 同步到 Gist
+  gistLoad().then(function(remote) {
+    var data = remote || { evening: {}, dream: {} };
+    if (!data.dream) data.dream = {};
+    data.dream[k] = entry;
+    return gistSave(data);
+  }).then(function() {
+    console.log('☁️ 梦记已存云端');
+  });
+  toast('梦记已保存 ✓ 已存云端', 'toast-purple');
+  document.getElementById('dBody').value = '';
+  document.getElementById('dScene').value = '';
+  document.getElementById('dStory').value = '';
   dRenderAll();
 }
 
-function dHeader(){const n=new Date();document.getElementById('dreamDateBadge').textContent=['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'][n.getMonth()]+' · '+tKey()}
-
-function dCal(){
-  const g=document.getElementById('dCalendar');g.innerHTML='';const d=dGet();const n=new Date();const y=n.getFullYear();const m=n.getMonth();const days=mDays();
-  for(let i=1;i<=days;i++){const d2=new Date(y,m,i);const k=d2.getFullYear()+'-'+String(d2.getMonth()+1).padStart(2,'0')+'-'+String(d2.getDate()).padStart(2,'0');
-  const dv=document.createElement('div');dv.className='cal-day';if(d[k])dv.classList.add('done','done-purple');if(k===tKey())dv.classList.add('today');
-  const nm=document.createElement('span');nm.className='num-small';nm.textContent=i;dv.appendChild(nm);
-  const dt=document.createElement('span');dt.style.fontSize='14px';dt.textContent=d[k]?'🌙':'';dv.appendChild(dt);g.appendChild(dv)}
+function dHeader() {
+  var n = new Date();
+  document.getElementById('dreamDateBadge').textContent = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'][n.getMonth()] + ' · ' + tKey();
 }
-
-function dRec(){
-  const l=document.getElementById('dRecords');const d=dGet();const es=Object.values(d).sort((a,b)=>b.timestamp.localeCompare(a.timestamp));
-  if(!es.length){l.innerHTML='<div style="text-align:center;color:var(--dim);padding:20px">还没有梦记记录</div>';return}
-  l.innerHTML='';es.forEach(e=>{const dv=document.createElement('div');dv.className='entry-item m-item';
-  let h='<div class="date">'+e.date+'</div>';if(e.dreamBody)h+='<div class="dream-line"><span class="tag">① </span>'+esc(e.dreamBody)+'</div>';
-  if(e.dreamScene)h+='<div class="dream-line"><span class="tag">② </span>'+esc(e.dreamScene)+'</div>';
-  if(e.dreamStory)h+='<div class="dream-line"><span class="tag">③ </span>'+esc(e.dreamStory)+'</div>';dv.innerHTML=h;l.appendChild(dv)})
+function dCal() {
+  var g = document.getElementById('dCalendar'); g.innerHTML = '';
+  var d = dGet(); var n = new Date(); var y = n.getFullYear(); var m = n.getMonth(); var days = mDays();
+  for (var i = 1; i <= days; i++) {
+    var d2 = new Date(y, m, i);
+    var k = d2.getFullYear() + '-' + String(d2.getMonth()+1).padStart(2,'0') + '-' + String(d2.getDate()).padStart(2,'0');
+    var dv = document.createElement('div'); dv.className = 'cal-day';
+    if (d[k]) dv.classList.add('done', 'done-purple');
+    if (k === tKey()) dv.classList.add('today');
+    var nm = document.createElement('span'); nm.className = 'num-small'; nm.textContent = i; dv.appendChild(nm);
+    var dt = document.createElement('span'); dt.style.fontSize = '14px'; dt.textContent = d[k] ? '🌙' : ''; dv.appendChild(dt);
+    g.appendChild(dv);
+  }
 }
-
-function showDTab(t){document.querySelectorAll('#pageDream .view-btn').forEach(b=>b.classList.remove('active-purple'));['dPanelCheck','dPanelView','dPanelRecords'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-if(t==='check'){document.getElementById('dTabCheck').classList.add('active-purple');document.getElementById('dPanelCheck').classList.remove('hidden')}
-else if(t==='view'){document.getElementById('dTabView').classList.add('active-purple');document.getElementById('dPanelView').classList.remove('hidden');dCal()}
-else{document.getElementById('dTabRecords').classList.add('active-purple');document.getElementById('dPanelRecords').classList.remove('hidden');dRec()}}
-function dRenderAll(){dHeader();if(!document.getElementById('dPanelView').classList.contains('hidden'))dCal();if(!document.getElementById('dPanelRecords').classList.contains('hidden'))dRec()}
-
-function dExport(){const d=JSON.parse(localStorage.getItem(DK))||{};const es=Object.values(d).sort((a,b)=>a.timestamp.localeCompare(b.timestamp));if(!es.length){toast('没有记录可导出','toast-purple');return}
-const b=new Blob([JSON.stringify(es,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='dream-'+tKey()+'.json';a.click();URL.revokeObjectURL(u);toast('已导出','toast-purple')}
-function dImportData(e){const f=e.target.files[0];if(!f)return;new FileReader().onload=function(ev){try{const es=JSON.parse(ev.target.result);if(!Array.isArray(es)){toast('格式不对','toast-purple');return}
-const d=JSON.parse(localStorage.getItem(DK))||{};let c=0;es.forEach(function(x){if(x.date&&!d[x.date]){d[x.date]=x;c++}});localStorage.setItem(DK,JSON.stringify(d));toast('导入 '+c+' 条','toast-purple');dRenderAll()}catch(err){toast('解析失败','toast-purple')}}.readAsText(f);e.target.value=''}
-function dBackup(){const d=JSON.parse(localStorage.getItem(DK))||{};const es=Object.values(d);if(!es.length){toast('没有记录','toast-purple');return}
-const j=JSON.stringify(es);const o=document.createElement('div');o.className='modal-overlay';o.onclick=function(ev){if(ev.target===o)document.body.removeChild(o)};
-o.innerHTML='<div class="modal-box" style="border-color:var(--purple)"><div class="modal-title" style="color:var(--purple)">🔐 备份码</div><p style="font-size:12px;color:var(--dim);margin-bottom:10px">复制后到另一台设备点「📤 导入」</p><textarea id="dCode" readonly>'+j+'</textarea><div class="modal-actions"><button class="btn-pri-purple" onclick="document.getElementById(\'dCode\').select();document.execCommand(\'copy\');toast(\'已复制\',\'toast-purple\')">📋 复制</button><button class="btn-sec" onclick="this.closest(\'.modal-overlay\').remove()">关闭</button></div></div>';document.body.appendChild(o);const ta=document.getElementById('dCode');ta.select();try{document.execCommand('copy');toast('已复制到剪贴板','toast-purple')}catch(e){}}
+function dRec() {
+  var l = document.getElementById('dRecords'); var d = dGet();
+  var es = Object.values(d).sort(function(a,b) { return b.timestamp && a.timestamp ? b.timestamp.localeCompare(a.timestamp) : 0; });
+  if (!es.length) { l.innerHTML = '<div style="text-align:center;color:var(--dim);padding:20px">还没有梦记记录</div>'; return; }
+  l.innerHTML = '';
+  es.forEach(function(e) {
+    var dv = document.createElement('div'); dv.className = 'entry-item m-item';
+    var h = '<div class="date">' + e.date + '</div>';
+    if (e.dreamBody || e.dream_body) h += '<div class="dream-line"><span class="tag">① </span>' + esc(e.dreamBody || e.dream_body) + '</div>';
+    if (e.dreamScene || e.dream_scene) h += '<div class="dream-line"><span class="tag">② </span>' + esc(e.dreamScene || e.dream_scene) + '</div>';
+    if (e.dreamStory || e.dream_story) h += '<div class="dream-line"><span class="tag">③ </span>' + esc(e.dreamStory || e.dream_story) + '</div>';
+    dv.innerHTML = h; l.appendChild(dv);
+  });
+}
+function showDTab(t) {
+  document.querySelectorAll('#pageDream .view-btn').forEach(function(b) { b.classList.remove('active-purple'); });
+  ['dPanelCheck','dPanelView','dPanelRecords'].forEach(function(id) { document.getElementById(id).classList.add('hidden'); });
+  if (t === 'check') { document.getElementById('dTabCheck').classList.add('active-purple'); document.getElementById('dPanelCheck').classList.remove('hidden'); }
+  else if (t === 'view') { document.getElementById('dTabView').classList.add('active-purple'); document.getElementById('dPanelView').classList.remove('hidden'); dCal(); }
+  else { document.getElementById('dTabRecords').classList.add('active-purple'); document.getElementById('dPanelRecords').classList.remove('hidden'); dRec(); }
+}
+function dRenderAll() { dHeader(); dLoadCloud(); }
 
 // ===================== 晚间日课 =====================
-const EK='riji_evening_checkin';const SD='2026-07-09';const TD=90;
-function eGet(){try{return JSON.parse(localStorage.getItem(EK))||{}}catch{return{}}}
-function eSet(d){localStorage.setItem(EK,JSON.stringify(d))}
-function eDay(dateStr){const s=new Date(SD);const c=new Date(dateStr);return Math.max(1,Math.min(Math.floor((c-s)/86400000)+1,TD))}
-function eToday(){return eDay(tKey())}
-let eAsked='';
-function eToggle(el,v){const p=el.parentElement;p.querySelectorAll('.check-item').forEach(c=>c.classList.remove('active-yes','active-no'));
-if(el.classList.contains('active-yes')||el.classList.contains('active-no')){eAsked='';return}
-if(v==='yes')el.classList.add('active-yes');else el.classList.add('active-no');eAsked=v==='yes'?'问了':v==='no'?'没问':'忘了'}
-
-function eSubmit(){
-  const k=tKey();const d=eGet();if(d[k]&&!confirm('今天已打卡，覆盖吗？'))return;
-  const s=document.getElementById('eSelf').value.trim();const b=document.getElementById('eBody').value.trim();
-  const bf=document.getElementById('eBodyFeel').value.trim();const em=document.getElementById('eEmotion').value.trim();const t=document.getElementById('eThought').value.trim();
-  if(!s&&!b&&!bf&&!em&&!t&&!eAsked){toast('写点什么再提交吧','toast-gold');return}
-  d[k]={date:k,day:eToday(),self:s,body:b,asked:eAsked,bodyFeel:bf,emotion:em,thought:t,timestamp:new Date().toISOString()};eSet(d);showFeedback('evening',d[k]);syncLocal(d[k]);
-  toast('Day '+eToday()+' 已保存 ✓','toast-gold');eAsked='';
-  document.getElementById('eSelf').value='';document.getElementById('eBody').value='';document.getElementById('eBodyFeel').value='';document.getElementById('eEmotion').value='';document.getElementById('eThought').value='';
-  document.querySelectorAll('#pageEvening .check-item').forEach(c=>c.classList.remove('active-yes','active-no'));eAsked='';eRenderAll();
+var EK = 'riji_evening_checkin';
+var SD = '2026-07-09';
+var TD = 90;
+function eGet() { try { return JSON.parse(localStorage.getItem(EK)) || {}; } catch(e) { return {}; } }
+function eSet(d) { localStorage.setItem(EK, JSON.stringify(d)); }
+function eDay(dateStr) { var s = new Date(SD); var c = new Date(dateStr); return Math.max(1, Math.min(Math.floor((c-s)/86400000)+1, TD)); }
+function eToday() { return eDay(tKey()); }
+var eAsked = '';
+function eToggle(el, v) {
+  var p = el.parentElement; p.querySelectorAll('.check-item').forEach(function(c) { c.classList.remove('active-yes','active-no'); });
+  if (el.classList.contains('active-yes') || el.classList.contains('active-no')) { eAsked = ''; return; }
+  if (v === 'yes') el.classList.add('active-yes'); else el.classList.add('active-no');
+  eAsked = v === 'yes' ? '问了' : v === 'no' ? '没问' : '忘了';
 }
 
-function eHeader(){
-  const n=eToday();document.getElementById('eDayBadge').textContent='Day '+Math.min(n,90);document.getElementById('eDayLabel').textContent='第'+Math.min(n,90)+'天';
-  document.getElementById('eProgress').style.width=Math.round((Math.min(n,90)/90)*100)+'%';
+// 从 Gist 拉取晚间数据
+function eLoadCloud() {
+  gistLoad().then(function(remote) {
+    if (!remote) return;
+    var eveData = remote.evening || {};
+    var local = eGet();
+    var c = mergeData(local, eveData);
+    if (c > 0) { eSet(local); eRenderAll(); console.log('📦 从云端拉了 ' + c + ' 条晚间记录'); }
+  });
 }
 
-function eCal(){
-  const g=document.getElementById('eCalendar');g.innerHTML='';const d=eGet();
-  for(let i=1;i<=TD;i++){const d2=new Date(SD);d2.setDate(d2.getDate()+i-1);const k=d2.getFullYear()+'-'+String(d2.getMonth()+1).padStart(2,'0')+'-'+String(d2.getDate()).padStart(2,'0');
-  const dv=document.createElement('div');dv.className='cal-day';if(d[k])dv.classList.add('done','done-gold');if(k===tKey())dv.classList.add('today');
-  const nm=document.createElement('span');nm.className='num-small';nm.textContent=i;dv.appendChild(nm);
-  const dt=document.createElement('span');dt.style.fontSize='14px';dt.textContent=d[k]?'✓':'';dv.appendChild(dt);g.appendChild(dv)}
+function eSubmit() {
+  var k = tKey(); var d = eGet();
+  if (d[k] && !confirm('今天已打卡，覆盖吗？')) return;
+  var s = document.getElementById('eSelf').value.trim();
+  var b = document.getElementById('eBody').value.trim();
+  var bf = document.getElementById('eBodyFeel').value.trim();
+  var em = document.getElementById('eEmotion').value.trim();
+  var t = document.getElementById('eThought').value.trim();
+  if (!s && !b && !bf && !em && !t && !eAsked) { toast('写点什么再提交吧', 'toast-gold'); return; }
+  var entry = { date: k, day: eToday(), self: s, body: b, asked: eAsked, bodyFeel: bf, emotion: em, thought: t, timestamp: new Date().toISOString() };
+  d[k] = entry; eSet(d);
+  // 同步到 Gist
+  gistLoad().then(function(remote) {
+    var data = remote || { evening: {}, dream: {} };
+    if (!data.evening) data.evening = {};
+    data.evening[k] = entry;
+    return gistSave(data);
+  }).then(function() {
+    console.log('☁️ 晚间数据已存云端');
+  });
+  toast('Day ' + eToday() + ' 已保存 ✓ 已存云端', 'toast-gold');
+  eAsked = '';
+  document.getElementById('eSelf').value = '';
+  document.getElementById('eBody').value = '';
+  document.getElementById('eBodyFeel').value = '';
+  document.getElementById('eEmotion').value = '';
+  document.getElementById('eThought').value = '';
+  document.querySelectorAll('#pageEvening .check-item').forEach(function(c) { c.classList.remove('active-yes','active-no'); });
+  eAsked = '';
+  eRenderAll();
 }
 
-function eRec(){
-  const l=document.getElementById('eRecords');const d=eGet();const es=Object.values(d).sort((a,b)=>b.timestamp.localeCompare(a.timestamp));
-  if(!es.length){l.innerHTML='<div style="text-align:center;color:var(--dim);padding:20px">还没有打卡记录</div>';return}
-  l.innerHTML='';es.forEach(e=>{const dv=document.createElement('div');dv.className='entry-item e-item';
-  let h='<div class="date">Day '+e.day+' · '+e.date+'</div><div class="content">';
-  if(e.self)h+='<div>✦ '+esc(e.self)+'</div>';if(e.body)h+='<div>✦ '+esc(e.body)+'</div>';if(e.asked)h+='<div>✦ 问了自己吗：'+esc(e.asked)+'</div>';h+='</div>';
-  if(e.bodyFeel||e.emotion||e.thought){h+='<div class="sanjie">';if(e.bodyFeel)h+='身体：'+esc(e.bodyFeel)+'<br>';if(e.emotion)h+='情绪：'+esc(e.emotion)+'<br>';if(e.thought)h+='想法：'+esc(e.thought);h+='</div>'}
-  dv.innerHTML=h;l.appendChild(dv)})
+function eHeader() {
+  var n = eToday();
+  document.getElementById('eDayBadge').textContent = 'Day ' + Math.min(n, 90);
+  document.getElementById('eDayLabel').textContent = '第' + Math.min(n, 90) + '天';
+  document.getElementById('eProgress').style.width = Math.round((Math.min(n, 90) / 90) * 100) + '%';
 }
-
-function showETab(t){document.querySelectorAll('#pageEvening .view-btn').forEach(b=>b.classList.remove('active-gold'));['ePanelCheck','ePanelView','ePanelRecords'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-if(t==='check'){document.getElementById('eTabCheck').classList.add('active-gold');document.getElementById('ePanelCheck').classList.remove('hidden')}
-else if(t==='view'){document.getElementById('eTabView').classList.add('active-gold');document.getElementById('ePanelView').classList.remove('hidden');eCal()}
-else{document.getElementById('eTabRecords').classList.add('active-gold');document.getElementById('ePanelRecords').classList.remove('hidden');eRec()}}
-
-function eRenderAll(){
-  eHeader();if(!document.getElementById('ePanelView').classList.contains('hidden'))eCal();if(!document.getElementById('ePanelRecords').classList.contains('hidden'))eRec()}
-
-function eExport(){const d=JSON.parse(localStorage.getItem(EK))||{};const es=Object.values(d).sort((a,b)=>a.timestamp.localeCompare(b.timestamp));if(!es.length){toast('没有记录可导出','toast-gold');return}
-const b=new Blob([JSON.stringify(es,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='evening-'+tKey()+'.json';a.click();URL.revokeObjectURL(u);toast('已导出','toast-gold')}
-function eImportData(e){const f=e.target.files[0];if(!f)return;new FileReader().onload=function(ev){try{const es=JSON.parse(ev.target.result);if(!Array.isArray(es)){toast('格式不对','toast-gold');return}
-const d=JSON.parse(localStorage.getItem(EK))||{};let c=0;es.forEach(function(x){if(x.date&&x.day&&!d[x.date]){d[x.date]=x;c++}});localStorage.setItem(EK,JSON.stringify(d));toast('导入 '+c+' 条','toast-gold');eRenderAll()}catch(err){toast('解析失败','toast-gold')}}.readAsText(f);e.target.value=''}
-function eBackup(){const d=JSON.parse(localStorage.getItem(EK))||{};const es=Object.values(d);if(!es.length){toast('没有记录','toast-gold');return}
-const j=JSON.stringify(es);const o=document.createElement('div');o.className='modal-overlay';o.onclick=function(ev){if(ev.target===o)document.body.removeChild(o)};
-o.innerHTML='<div class="modal-box" style="border-color:var(--gold)"><div class="modal-title" style="color:var(--gold)">🔐 备份码</div><p style="font-size:12px;color:var(--dim);margin-bottom:10px">复制后到另一台设备点「📤 导入」</p><textarea id="eCode" readonly>'+j+'</textarea><div class="modal-actions"><button class="btn-pri-gold" onclick="document.getElementById(\'eCode\').select();document.execCommand(\'copy\');toast(\'已复制\',\'toast-gold\')">📋 复制</button><button class="btn-sec" onclick="this.closest(\'.modal-overlay\').remove()">关闭</button></div></div>';document.body.appendChild(o);const ta=document.getElementById('eCode');ta.select();try{document.execCommand('copy');toast('已复制到剪贴板','toast-gold')}catch(e){}}
-
-// 打卡反馈——梦记用完形，晚间用八正道
-function showFeedback(type, entry){
-  var el=document.createElement('div');el.className='modal-overlay';el.onclick=function(ev){if(ev.target===el)document.body.removeChild(el)};
-  var now=new Date();var h=now.getHours();
-  var timeWord=h<6?'夜深了':h<9?'清晨':h<12?'上午':h<14?'中午':h<18?'下午':h<21?'傍晚':'夜深了';
-  var c='';
-  if(type==='dream'){
-    var b=entry.dreamBody||'';var s=entry.dreamScene||'';var st=entry.dreamStory||'';
-    var gestaltNote='';
-    if(s||st) gestaltNote='梦里出现的画面和故事，是你自己的一部分在和你说话。不急着解读，先让它在那里。';
-    else if(b) gestaltNote='醒来时身体的感受，是此刻最真实的讯号。不带评判地留意它，就已经在觉察了。';
-    else gestaltNote='没有梦，也没有关系。完形说：觉察本身就是疗愈。';
-    c='<div style="text-align:center;margin-bottom:16px"><span style="font-size:48px">🌅</span></div>'
-    +'<div class="modal-title" style="color:var(--purple)">晨间梦记 · 已保存</div>'
-    +'<div style="font-size:13px;line-height:1.8;padding:0 8px">'
-    +'<div style="background:rgba(180,140,220,0.08);border-radius:10px;padding:12px;margin:8px 0;font-size:12px">'
-    +(b?'<div><span style="color:var(--purple)">① </span>'+esc(b)+'</div>':'')
-    +(s?'<div style="margin-top:4px"><span style="color:var(--purple)">② </span>'+esc(s)+'</div>':'')
-    +(st?'<div style="margin-top:4px"><span style="color:var(--purple)">③ </span>'+esc(st)+'</div>':'')
-    +'</div>'
-    +'<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--pborder)">'
-    +'<div style="color:var(--purple);font-size:11px;margin-bottom:4px">⭕ 完形视角</div>'
-    +'<div style="color:var(--dim);font-style:italic;font-size:12px">'+gestaltNote+'</div>'
-    +'</div></div>';
-  } else {
-    var self=entry.self||'';var body=entry.body||'';var feel=entry.bodyFeel||'';var em=entry.emotion||'';var thought=entry.thought||'';
-    // 选一条八正道
-    var paths=[
-      {name:'正见',desc:'如实地看见自己今天的状态，不美化也不否定——这就是正见。'},
-      {name:'正思维',desc:'你今天的念头在往哪个方向走？觉察它，而不被它带走。'},
-      {name:'正语',desc:'今天对自己说的话，是否温柔？'},
-      {name:'正业',desc:'今天做的事，是滋养自己的，还是消耗自己的？'},
-      {name:'正命',desc:'今天的生活方式，靠近你想要的活法吗？'},
-      {name:'正精进',desc:'今天你为自己做的那件事，无论大小，都是正精进。'},
-      {name:'正念',desc:'觉察身体、情绪、念头——你已在正念中。'},
-      {name:'正定',desc:'今天哪怕有片刻的专注或宁静，就是正定。'}
-    ];
-    var idx=entry.day%paths.length;
-    var p=paths[idx];
-    var note='';
-    if(!self&&!body) note='今天什么都没写也没关系。觉察本身就是修行。';
-    else if(em.indexOf('平静')>=0||em.indexOf('轻松')>=0||em.indexOf('愉悦')>=0) note='心平即是福田。';
-    else if(em.indexOf('累')>=0||em.indexOf('疲惫')>=0) note='累了就休息，身体比头脑更懂正精进。';
-    else note='如实看见今天，就是正见开始的地方。';
-    c='<div style="text-align:center;margin-bottom:16px"><span style="font-size:48px">🌙</span></div>'
-    +'<div class="modal-title">Day '+entry.day+' · 已保存</div>'
-    +'<div style="font-size:13px;line-height:1.8;padding:0 8px">'
-    +(self||body?'<div style="background:rgba(226,185,122,0.08);border-radius:10px;padding:12px;margin:8px 0;font-size:12px">':'')
-    +(self?'<div>✦ '+esc(self.slice(0,60))+(self.length>60?'…':'')+'</div>':'')
-    +(body?'<div style="margin-top:4px">✦ '+esc(body.slice(0,60))+(body.length>60?'…':'')+'</div>':'')
-    +(self||body?'</div>':'')
-    +'<div style="color:var(--dim);font-style:italic;font-size:12px;margin-top:4px">'+note+'</div>'
-    +'<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">'
-    +'<div style="color:var(--gold);font-size:11px;margin-bottom:4px">🛤️ 八正道 · '+p.name+'</div>'
-    +'<div style="color:var(--dim);font-style:italic;font-size:12px">'+p.desc+'</div>'
-    +'</div>'
-    +'<div style="text-align:center;margin-top:12px;font-size:11px;color:var(--dim)">第 '+entry.day+' / 90 · '+Math.round(entry.day/90*100)+'%</div></div>';
+function eCal() {
+  var g = document.getElementById('eCalendar'); g.innerHTML = '';
+  var d = eGet();
+  for (var i = 1; i <= TD; i++) {
+    var d2 = new Date(SD); d2.setDate(d2.getDate() + i - 1);
+    var k = d2.getFullYear() + '-' + String(d2.getMonth()+1).padStart(2,'0') + '-' + String(d2.getDate()).padStart(2,'0');
+    var dv = document.createElement('div'); dv.className = 'cal-day';
+    if (d[k]) dv.classList.add('done', 'done-gold');
+    if (k === tKey()) dv.classList.add('today');
+    var nm = document.createElement('span'); nm.className = 'num-small'; nm.textContent = i; dv.appendChild(nm);
+    var dt = document.createElement('span'); dt.style.fontSize = '14px'; dt.textContent = d[k] ? '✓' : ''; dv.appendChild(dt);
+    g.appendChild(dv);
   }
-  el.innerHTML='<div class="modal-box"><div style="max-height:60vh;overflow-y:auto">'+c+'</div><div class="modal-actions"><button class="btn-pri-gold" onclick="this.closest(\'.modal-overlay\').remove()">好</button></div></div>';
-  document.body.appendChild(el);
 }
-
-// 本地同步
-function syncLocal(entry){
-  try{var x=new XMLHttpRequest();x.open('POST','http://localhost:3456/api/data',true);x.setRequestHeader('Content-Type','application/json');x.onload=function(){if(x.status===200)console.log('💾 本地已备份')};x.onerror=function(){};x.send(JSON.stringify([entry]))}catch(e){}
+function eRec() {
+  var l = document.getElementById('eRecords'); var d = eGet();
+  var es = Object.values(d).sort(function(a,b) { return b.timestamp && a.timestamp ? b.timestamp.localeCompare(a.timestamp) : 0; });
+  if (!es.length) { l.innerHTML = '<div style="text-align:center;color:var(--dim);padding:20px">还没有打卡记录</div>'; return; }
+  l.innerHTML = '';
+  es.forEach(function(e) {
+    var dv = document.createElement('div'); dv.className = 'entry-item e-item';
+    var h = '<div class="date">Day ' + (e.day || '?') + ' · ' + e.date + '</div><div class="content">';
+    if (e.self) h += '<div>✦ ' + esc(e.self) + '</div>';
+    if (e.body) h += '<div>✦ ' + esc(e.body) + '</div>';
+    if (e.asked) h += '<div>✦ 问了自己吗：' + esc(e.asked) + '</div>';
+    h += '</div>';
+    if (e.bodyFeel || e.emotion || e.thought) {
+      h += '<div class="sanjie">';
+      if (e.bodyFeel) h += '身体：' + esc(e.bodyFeel) + '<br>';
+      if (e.emotion) h += '情绪：' + esc(e.emotion) + '<br>';
+      if (e.thought) h += '想法：' + esc(e.thought);
+      h += '</div>';
+    }
+    dv.innerHTML = h; l.appendChild(dv);
+  });
 }
+function showETab(t) {
+  document.querySelectorAll('#pageEvening .view-btn').forEach(function(b) { b.classList.remove('active-gold'); });
+  ['ePanelCheck','ePanelView','ePanelRecords'].forEach(function(id) { document.getElementById(id).classList.add('hidden'); });
+  if (t === 'check') { document.getElementById('eTabCheck').classList.add('active-gold'); document.getElementById('ePanelCheck').classList.remove('hidden'); }
+  else if (t === 'view') { document.getElementById('eTabView').classList.add('active-gold'); document.getElementById('ePanelView').classList.remove('hidden'); eCal(); }
+  else { document.getElementById('eTabRecords').classList.add('active-gold'); document.getElementById('ePanelRecords').classList.remove('hidden'); eRec(); }
+}
+function eRenderAll() { eHeader(); if (!document.getElementById('ePanelView').classList.contains('hidden')) eCal(); if (!document.getElementById('ePanelRecords').classList.contains('hidden')) eRec(); }
 
-function esc(s){return s.replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+// ===== Helpers =====
+function esc(s) { return s.replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ===== 启动时加载 =====
+setStatus('☁️ 同步中...');
+gistLoad().then(function(remote) {
+  if (!remote) { setStatus('☁️ 同步完成'); return; }
+  // 合并梦记
+  var localDream = dGet();
+  var c1 = mergeData(localDream, remote.dream || {});
+  if (c1 > 0) dSet(localDream);
+  // 合并晚间
+  var localEven = eGet();
+  var c2 = mergeData(localEven, remote.evening || {});
+  if (c2 > 0) eSet(localEven);
+  setStatus('☁️ 同步完成');
+  console.log('📦 云端同步: ' + c1 + ' 条梦记, ' + c2 + ' 条晚间');
+}).catch(function() {
+  setStatus('☁️ 离线模式，数据在本地');
+});
+
+goTo('entry');
 </script>
 </body>
-<!-- deploy: 2026-07-13 -->
 </html>
