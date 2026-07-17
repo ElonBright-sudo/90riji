@@ -215,50 +215,70 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 // ============================================================
 // 配置 — 用你在 GitHub 生成的 Token
 // ============================================================
-var GIST_ID = 'b94fddc8b323939fa4e0bd5c258213c0';
 var GIST_TOKEN = 'github_pat_11CHFSESI06QXJaAFVzXp4_3lYQHN09D2lL' + '1ZU9O0mZ8X7PcnbteahoBsvulvWOTuECWY47LLP71mqlXFi';
 
 // ============================================================
-// GitHub Gist 云存储
+// GitHub Repo 云存储
 // ============================================================
 
-// 从 Gist 读取数据
-function gistLoad() {
-  return fetch('https://api.github.com/gists/' + GIST_ID, {
-    headers: {
-      'Authorization': 'token ' + GIST_TOKEN,
-      'Accept': 'application/vnd.github.v3+json'
-    }
-  }).then(function(r) { return r.json(); }).then(function(gist) {
-    var content = gist.files['checkins.json'].content;
-    return JSON.parse(content);
-  }).catch(function(err) {
-    console.warn('⚠️ Gist 读取失败:', err);
-    return null;
-  });
-}
+// 数据文件在仓库中的地址
+var DATA_URL = 'https://raw.githubusercontent.com/elonbright-sudo/90riji/main/data.json';
 
-// 保存到 Gist
-function gistSave(data) {
-  return fetch('https://api.github.com/gists/' + GIST_ID, {
-    method: 'PATCH',
-    headers: {
-      'Authorization': 'token ' + GIST_TOKEN,
-      'Content-Type': 'application/json',
-      'Accept': 'application/vnd.github.v3+json'
-    },
-    body: JSON.stringify({
-      files: {
-        'checkins.json': {
-          content: JSON.stringify(data, null, 2)
+// 从 GitHub 读取数据（无需 token，走 CDN）
+function cloudLoad() {
+  return fetch(DATA_URL + '?_t=' + Date.now())
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      // 归一化：兼容旧版 evening/dream 结构或平铺结构
+      if (data.evening || data.dream) return data;
+      // 平铺结构转分类
+      var evening = {}, dream = {};
+      for (var k in data) {
+        var v = data[k];
+        if (v.self || v.bodyFeel || v.emotion || v.thought) {
+          evening[k] = v;
+        } else if (v.dreamBody || v.dream_body || v.dreamScene || v.dream_scene) {
+          dream[k] = v;
+        } else {
+          evening[k] = v; // fallback
         }
       }
+      return { evening: evening, dream: dream };
     })
-  }).then(function(r) { return r.json(); }).then(function() {
-    console.log('☁️ Gist 保存成功');
-  }).catch(function(err) {
-    console.warn('⚠️ Gist 保存失败:', err);
-  });
+    .catch(function(err) {
+      console.warn('⚠️ 云端读取失败:', err);
+      return null;
+    });
+}
+
+// 保存到 GitHub（需要 token）
+function cloudSave(data) {
+  var content = JSON.stringify(data, null, 2);
+  // 先获取当前文件 SHA（更新时需要）
+  return fetch('https://api.github.com/repos/elonbright-sudo/90riji/contents/data.json', {
+    headers: { 'Authorization': 'token ' + GIST_TOKEN }
+  }).then(function(r) { return r.json(); })
+  .then(function(fileInfo) {
+    var sha = fileInfo.sha || '';
+    var encoded = btoa(unescape(encodeURIComponent(content)));
+    return fetch('https://api.github.com/repos/elonbright-sudo/90riji/contents/data.json', {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + GIST_TOKEN,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'sync: check-in data',
+        content: encoded,
+        sha: sha
+      })
+    });
+  }).then(function(r) { return r.json(); })
+  .then(function() { console.log('☁️ 云端保存成功'); })
+  .catch(function(err) { console.warn('⚠️ 云端保存失败:', err); });
 }
 
 // 合并数据：remote 覆盖 local
@@ -299,7 +319,7 @@ function mDays() { var n = new Date(); return new Date(n.getFullYear(), n.getMon
 // 从 Gist 拉取梦记
 function dLoadCloud() {
   setStatus('☁️ 同步中...');
-  gistLoad().then(function(remote) {
+  cloudLoad().then(function(remote) {
     if (!remote) { setStatus('☁️ 同步完成'); return; }
     var dreamData = remote.dream || {};
     var local = dGet();
@@ -325,11 +345,11 @@ function dSubmit() {
   var entry = { date: k, dreamBody: b, dreamScene: s, dreamStory: t, timestamp: new Date().toISOString() };
   d[k] = entry; dSet(d);
   // 同步到 Gist
-  gistLoad().then(function(remote) {
+  cloudLoad().then(function(remote) {
     var data = remote || { evening: {}, dream: {} };
     if (!data.dream) data.dream = {};
     data.dream[k] = entry;
-    return gistSave(data);
+    return cloudSave(data);
   }).then(function() {
     console.log('☁️ 梦记已存云端');
   });
@@ -399,7 +419,7 @@ function eToggle(el, v) {
 
 // 从 Gist 拉取晚间数据
 function eLoadCloud() {
-  gistLoad().then(function(remote) {
+  cloudLoad().then(function(remote) {
     if (!remote) return;
     var eveData = remote.evening || {};
     var local = eGet();
@@ -420,11 +440,11 @@ function eSubmit() {
   var entry = { date: k, day: eToday(), self: s, body: b, asked: eAsked, bodyFeel: bf, emotion: em, thought: t, timestamp: new Date().toISOString() };
   d[k] = entry; eSet(d);
   // 同步到 Gist
-  gistLoad().then(function(remote) {
+  cloudLoad().then(function(remote) {
     var data = remote || { evening: {}, dream: {} };
     if (!data.evening) data.evening = {};
     data.evening[k] = entry;
-    return gistSave(data);
+    return cloudSave(data);
   }).then(function() {
     console.log('☁️ 晚间数据已存云端');
   });
@@ -496,7 +516,7 @@ function esc(s) { return s.replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ===== 启动时加载 =====
 setStatus('☁️ 同步中...');
-gistLoad().then(function(remote) {
+cloudLoad().then(function(remote) {
   if (!remote) { setStatus('☁️ 同步完成'); return; }
   // 合并梦记
   var localDream = dGet();
