@@ -256,9 +256,9 @@ function cloudLoad() {
 
 // 保存到 GitHub（需要 token）
 function cloudSave(data) {
+  // 1. 尝试写入 GitHub API
   var content = JSON.stringify(data, null, 2);
-  // 先获取当前文件 SHA（更新时需要）
-  return fetch('https://api.github.com/repos/elonbright-sudo/90riji/contents/data.json', {
+  var p1 = fetch('https://api.github.com/repos/elonbright-sudo/90riji/contents/data.json', {
     headers: { 'Authorization': 'token ' + GIST_TOKEN }
   }).then(function(r) { return r.json(); })
   .then(function(fileInfo) {
@@ -270,15 +270,27 @@ function cloudSave(data) {
         'Authorization': 'token ' + GIST_TOKEN,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        message: 'sync: check-in data',
-        content: encoded,
-        sha: sha
-      })
+      body: JSON.stringify({ message: 'sync: check-in data', content: encoded, sha: sha })
     });
   }).then(function(r) { return r.json(); })
-  .then(function() { console.log('☁️ 云端保存成功'); })
-  .catch(function(err) { console.warn('⚠️ 云端保存失败:', err); });
+  .then(function() { console.log('☁️ GitHub 保存成功'); return true; })
+  .catch(function(err) { console.warn('⚠️ GitHub 保存失败:', err); return false; });
+  
+  // 2. 同时尝试发到 Mac 本地服务（localhost.run 隧道）
+  var serverUrl = localStorage.getItem('server_url') || 'https://cf5b7944390337.lhr.life';
+  var p2 = fetch(serverUrl + '/api/data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data.evening ? Object.values(data.evening) : [])
+  }).then(function(r) {
+    if (r.ok) console.log('💻 Mac 备份成功');
+    return r.ok;
+  }).catch(function() {
+    console.log('💻 Mac 离线，数据在本地');
+    return false;
+  });
+  
+  return Promise.all([p1, p2]);
 }
 
 // 合并数据：remote 覆盖 local
