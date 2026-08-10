@@ -200,6 +200,9 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
       <div class="bz-item" onclick="bzToggle(this)">正念</div>
       <div class="bz-item" onclick="bzToggle(this)">正定</div>
     </div>
+    <div class="form-group" id="bzNoteWrap" style="display:none;margin-top:10px">
+      <textarea id="eBzNote" class="ta-gold" rows="2" placeholder="今天这条上发生了什么？简单说两句，可不填"></textarea>
+    </div>
   </div>
   <button class="btn-submit btn-gold" onclick="eSubmit()">提交打卡 → 存云端</button>
 </div>
@@ -430,9 +433,10 @@ function eToggle(el, v) {
 }
 var bzSel = '';
 function bzToggle(el) {
-  if (el.classList.contains('active')) { el.classList.remove('active'); bzSel = ''; return; }
+  var wrap = document.getElementById('bzNoteWrap');
+  if (el.classList.contains('active')) { el.classList.remove('active'); bzSel = ''; wrap.style.display = 'none'; document.getElementById('eBzNote').value = ''; return; }
   document.querySelectorAll('#pageEvening .bz-item').forEach(function(c) { c.classList.remove('active'); });
-  el.classList.add('active'); bzSel = el.textContent;
+  el.classList.add('active'); bzSel = el.textContent; wrap.style.display = 'block';
 }
 
 // 从 Gist 拉取晚间数据
@@ -452,8 +456,9 @@ function eSubmit() {
   var bf = document.getElementById('eBodyFeel').value.trim();
   var em = document.getElementById('eEmotion').value.trim();
   var t = document.getElementById('eThought').value.trim();
+  var bn = document.getElementById('eBzNote').value.trim();
   if (!bf && !em && !t) { toast('写点什么再提交吧', 'toast-gold'); return; }
-  var entry = { date: k, day: eToday(), bazheng: bzSel, bodyFeel: bf, emotion: em, thought: t, timestamp: new Date().toISOString() };
+  var entry = { date: k, day: eToday(), bazheng: bzSel, bazhengNote: bn, bodyFeel: bf, emotion: em, thought: t, timestamp: new Date().toISOString() };
   d[k] = entry; eSet(d);
   // 同步到 Gist
   cloudLoad().then(function(remote) {
@@ -468,7 +473,8 @@ function eSubmit() {
   document.getElementById('eBodyFeel').value = '';
   document.getElementById('eEmotion').value = '';
   document.getElementById('eThought').value = '';
-  document.querySelectorAll('#pageEvening .bz-item').forEach(function(c) { c.classList.remove('active'); }); bzSel = '';
+  document.getElementById('eBzNote').value = '';
+  document.querySelectorAll('#pageEvening .bz-item').forEach(function(c) { c.classList.remove('active'); }); bzSel = ''; document.getElementById('bzNoteWrap').style.display = 'none';
   eRenderAll();
 }
 
@@ -503,7 +509,7 @@ function eRec() {
     if (e.self) h += '<div>✦ ' + esc(e.self) + '</div>';
     if (e.body) h += '<div>✦ ' + esc(e.body) + '</div>';
     if (e.asked) h += '<div>✦ 问了自己吗：' + esc(e.asked) + '</div>';
-    if (e.bazheng) h += '<div>✨ 八正道：' + esc(e.bazheng) + '</div>';
+    if (e.bazheng) h += '<div>✨ 八正道：' + esc(e.bazheng) + (e.bazhengNote ? '——' + esc(e.bazhengNote) : '') + '</div>';
     h += '</div>';
     if (e.bodyFeel || e.emotion || e.thought) {
       h += '<div class="sanjie">';
