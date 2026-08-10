@@ -147,12 +147,16 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 </div>
 <div id="dPanelCheck">
   <div class="card card-purple">
-    <div class="card-title c-title-purple"><span class="num">①</span>身体/情绪</div>
-    <div class="form-group"><textarea id="dBody" class="ta-purple" placeholder="梦记从身体端开始长——醒来时身体有什么感受？什么情绪？" rows="2"></textarea></div>
+    <div class="card-title c-title-purple"><span class="num">🕐</span>梦记时间 <span style="font-size:11px;color:var(--dim)">（默认今天 · 补录可改）</span></div>
+    <div class="form-group"><input type="date" id="dDateInput" class="ta-purple"></div>
   </div>
   <div class="card card-purple">
-    <div class="card-title c-title-purple"><span class="num">②</span>画面</div>
-    <div class="form-group"><textarea id="dScene" class="ta-purple" placeholder="梦里看到了什么画面？场景是什么样的？" rows="2"></textarea></div>
+    <div class="card-title c-title-purple"><span class="num">①</span>画面</div>
+    <div class="form-group"><textarea id="dScene" class="ta-purple" placeholder="醒来时，眼前/脑里出现的是什么画面？先记画面——它走得快。" rows="2"></textarea></div>
+  </div>
+  <div class="card card-purple">
+    <div class="card-title c-title-purple"><span class="num">②</span>身体/情绪</div>
+    <div class="form-group"><textarea id="dBody" class="ta-purple" placeholder="记完画面，再觉察身体——醒来时身体有什么感受？什么情绪？" rows="2"></textarea></div>
   </div>
   <div class="card card-purple">
     <div class="card-title c-title-purple"><span class="num">③</span>故事</div>
@@ -187,7 +191,11 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
   <div class="card">
     <div class="card-title c-title-gold"><span class="num">🕐</span>打卡时间 <span style="font-size:11px;color:var(--dim)">（默认今天 · 补录可改）</span></div>
     <div class="form-group"><input type="date" id="eDateInput" class="ta-gold"></div>
-    <div style="font-size:11px;color:var(--dim);line-height:1.6">八正道不用选——打卡后把内容发微信，我帮你判断今天照在哪一道。</div>
+    <div style="font-size:11px;color:var(--dim);line-height:1.6">八正道不用选——写今天的事就行，我帮你判断照在哪一道。</div>
+  </div>
+  <div class="card">
+    <div class="card-title c-title-gold"><span class="num">📝</span>今天发生的事 <span style="font-size:11px;color:var(--dim)">（可空 · 简单说两句）</span></div>
+    <div class="form-group"><textarea id="eBzNote" class="ta-gold" rows="3" placeholder="今天发生了什么？简单说两句，可不填"></textarea></div>
   </div>
   <div class="card">
     <div class="card-title c-title-gold"><span class="num">⭕</span>三界觉察</div>
@@ -342,8 +350,10 @@ function dLoadCloud() {
 }
 
 function dSubmit() {
-  var k = tKey(); var d = dGet();
-  if (d[k] && !confirm('今天已记过梦，覆盖吗？')) return;
+  var dateEl = document.getElementById('dDateInput');
+  var k = (dateEl && dateEl.value) ? dateEl.value : tKey();
+  var d = dGet();
+  if (d[k] && !confirm(k + ' 已记过梦，覆盖吗？')) return;
   var b = document.getElementById('dBody').value.trim();
   var s = document.getElementById('dScene').value.trim();
   var t = document.getElementById('dStory').value.trim();
@@ -365,6 +375,8 @@ function dSubmit() {
   document.getElementById('dStory').value = '';
   dRenderAll();
 }
+
+function dDateInit() { var di = document.getElementById('dDateInput'); if (di && !di.value) di.value = tKey(); }
 
 function dHeader() {
   var n = new Date();
@@ -405,7 +417,7 @@ function showDTab(t) {
   else if (t === 'view') { document.getElementById('dTabView').classList.add('active-purple'); document.getElementById('dPanelView').classList.remove('hidden'); dCal(); }
   else { document.getElementById('dTabRecords').classList.add('active-purple'); document.getElementById('dPanelRecords').classList.remove('hidden'); dRec(); }
 }
-function dRenderAll() { dHeader(); dLoadCloud(); }
+function dRenderAll() { dDateInit(); dHeader(); dLoadCloud(); }
 
 // ===================== 晚间日课 =====================
 var EK = 'riji_evening_checkin';
@@ -443,8 +455,9 @@ function eSubmit() {
   var bf = document.getElementById('eBodyFeel').value.trim();
   var em = document.getElementById('eEmotion').value.trim();
   var t = document.getElementById('eThought').value.trim();
-  if (!bf && !em && !t) { toast('写点什么再提交吧', 'toast-gold'); return; }
-  var entry = { date: k, day: eDay(k), bodyFeel: bf, emotion: em, thought: t, timestamp: new Date().toISOString() };
+  var bn = document.getElementById('eBzNote').value.trim();
+  if (!bf && !em && !t && !bn) { toast('写点什么再提交吧', 'toast-gold'); return; }
+  var entry = { date: k, day: eDay(k), bazhengNote: bn, bodyFeel: bf, emotion: em, thought: t, timestamp: new Date().toISOString() };
   d[k] = entry; eSet(d);
   // 同步到 Gist
   cloudLoad().then(function(remote) {
@@ -459,6 +472,7 @@ function eSubmit() {
   document.getElementById('eBodyFeel').value = '';
   document.getElementById('eEmotion').value = '';
   document.getElementById('eThought').value = '';
+  document.getElementById('eBzNote').value = '';
   eRenderAll();
 }
 
