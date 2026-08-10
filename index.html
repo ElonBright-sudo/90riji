@@ -121,7 +121,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
     <div class="entry-btn btn-eve" onclick="goTo('evening')">
       <div class="ico">🌙</div>
       <div class="nm">晚间日课</div>
-      <div class="desc">正见 · 正思维 · 三界觉察</div>
+      <div class="desc">睡前五分行 · 三界觉察</div>
     </div>
     <div class="entry-ft" id="lcStatus">☁️ 云端同步 · 加载中...</div>
   </div>
@@ -180,26 +180,10 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 </div>
 <div id="ePanelCheck">
   <div class="card">
-    <div class="card-title c-title-gold"><span class="num">①</span>为自己做的一件事</div>
-    <div class="form-group"><textarea id="eSelf" class="ta-gold" placeholder="今天有没有一件事是完全只为自己做的？哪怕10分钟..." rows="2"></textarea></div>
-  </div>
-  <div class="card">
-    <div class="card-title c-title-gold"><span class="num">②</span>身体信号</div>
-    <div class="form-group"><textarea id="eBody" class="ta-gold" placeholder="身体有没有发信号？我怎么回应的？" rows="2"></textarea></div>
-  </div>
-  <div class="card">
-    <div class="card-title c-title-gold"><span class="num">③</span>问了"那我自己呢"吗？</div>
-    <div class="three-check">
-      <div class="check-item" onclick="eToggle(this,'yes')"><span class="emoji">✅</span><span class="label">问了</span></div>
-      <div class="check-item" onclick="eToggle(this,'no')"><span class="emoji">❌</span><span class="label">没问</span></div>
-      <div class="check-item" onclick="eToggle(this,'mid')"><span class="emoji">🤔</span><span class="label">忘了</span></div>
-    </div>
-  </div>
-  <div class="card">
     <div class="card-title c-title-gold"><span class="num">⭕</span>三界觉察</div>
-    <div class="form-group"><textarea id="eBodyFeel" class="ta-gold" placeholder="身体有什么感受？" rows="1"></textarea></div>
-    <div class="form-group"><textarea id="eEmotion" class="ta-gold" placeholder="有什么情绪？" rows="1"></textarea></div>
-    <div class="form-group"><textarea id="eThought" class="ta-gold" placeholder="有什么想法？" rows="2"></textarea></div>
+    <div class="form-group"><textarea id="eBodyFeel" class="ta-gold" placeholder="身体——今天身体发了什么信号？回应了吗？" rows="2"></textarea></div>
+    <div class="form-group"><textarea id="eEmotion" class="ta-gold" placeholder="情绪——此刻有什么情绪？" rows="2"></textarea></div>
+    <div class="form-group"><textarea id="eThought" class="ta-gold" placeholder="想法——此刻有什么想法？" rows="2"></textarea></div>
   </div>
   <button class="btn-submit btn-gold" onclick="eSubmit()">提交打卡 → 存云端</button>
 </div>
@@ -443,13 +427,11 @@ function eLoadCloud() {
 function eSubmit() {
   var k = tKey(); var d = eGet();
   if (d[k] && !confirm('今天已打卡，覆盖吗？')) return;
-  var s = document.getElementById('eSelf').value.trim();
-  var b = document.getElementById('eBody').value.trim();
   var bf = document.getElementById('eBodyFeel').value.trim();
   var em = document.getElementById('eEmotion').value.trim();
   var t = document.getElementById('eThought').value.trim();
-  if (!s && !b && !bf && !em && !t && !eAsked) { toast('写点什么再提交吧', 'toast-gold'); return; }
-  var entry = { date: k, day: eToday(), self: s, body: b, asked: eAsked, bodyFeel: bf, emotion: em, thought: t, timestamp: new Date().toISOString() };
+  if (!bf && !em && !t) { toast('写点什么再提交吧', 'toast-gold'); return; }
+  var entry = { date: k, day: eToday(), bodyFeel: bf, emotion: em, thought: t, timestamp: new Date().toISOString() };
   d[k] = entry; eSet(d);
   // 同步到 Gist
   cloudLoad().then(function(remote) {
@@ -461,14 +443,9 @@ function eSubmit() {
     console.log('☁️ 晚间数据已存云端');
   });
   toast('Day ' + eToday() + ' 已保存 ✓ 已存云端', 'toast-gold');
-  eAsked = '';
-  document.getElementById('eSelf').value = '';
-  document.getElementById('eBody').value = '';
   document.getElementById('eBodyFeel').value = '';
   document.getElementById('eEmotion').value = '';
   document.getElementById('eThought').value = '';
-  document.querySelectorAll('#pageEvening .check-item').forEach(function(c) { c.classList.remove('active-yes','active-no'); });
-  eAsked = '';
   eRenderAll();
 }
 
