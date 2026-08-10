@@ -46,6 +46,8 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .form-group textarea::placeholder{color:#555}
 .form-group textarea:focus{outline:none}
 .ta-gold{border:1px solid var(--border)}.ta-gold:focus{border-color:var(--gold)}
+.form-group input[type="date"]{width:100%;background:rgba(255,255,255,0.04);border-radius:10px;color:var(--text);font-size:15px;padding:12px;font-family:inherit;border:1px solid var(--border);-webkit-appearance:none;appearance:none;min-height:44px}
+.form-group input[type="date"]:focus{outline:none;border-color:var(--gold)}
 .ta-purple{border:1px solid var(--pborder)}.ta-purple:focus{border-color:var(--purple)}
 .three-check{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
 .check-item{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;text-align:center;padding:12px 4px;cursor:pointer;transition:all 0.2s;user-select:none}
@@ -183,20 +185,9 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 </div>
 <div id="ePanelCheck">
   <div class="card">
-    <div class="card-title c-title-gold"><span class="num">✨</span>今天八正道 <span style="font-size:11px;color:var(--dim)">（可选 · 点一条今天最有感的）</span></div>
-    <div class="bz-grid">
-      <div class="bz-item" onclick="bzToggle(this)">正见</div>
-      <div class="bz-item" onclick="bzToggle(this)">正思维</div>
-      <div class="bz-item" onclick="bzToggle(this)">正语</div>
-      <div class="bz-item" onclick="bzToggle(this)">正业</div>
-      <div class="bz-item" onclick="bzToggle(this)">正命</div>
-      <div class="bz-item" onclick="bzToggle(this)">正精进</div>
-      <div class="bz-item" onclick="bzToggle(this)">正念</div>
-      <div class="bz-item" onclick="bzToggle(this)">正定</div>
-    </div>
-    <div class="form-group" id="bzNoteWrap" style="display:none;margin-top:10px">
-      <textarea id="eBzNote" class="ta-gold" rows="2" placeholder="今天这条上发生了什么？简单说两句，可不填"></textarea>
-    </div>
+    <div class="card-title c-title-gold"><span class="num">🕐</span>打卡时间 <span style="font-size:11px;color:var(--dim)">（默认今天 · 补录可改）</span></div>
+    <div class="form-group"><input type="date" id="eDateInput" class="ta-gold"></div>
+    <div style="font-size:11px;color:var(--dim);line-height:1.6">八正道不用选——打卡后把内容发微信，我帮你判断今天照在哪一道。</div>
   </div>
   <div class="card">
     <div class="card-title c-title-gold"><span class="num">⭕</span>三界觉察</div>
@@ -431,13 +422,7 @@ function eToggle(el, v) {
   if (v === 'yes') el.classList.add('active-yes'); else el.classList.add('active-no');
   eAsked = v === 'yes' ? '问了' : v === 'no' ? '没问' : '忘了';
 }
-var bzSel = '';
-function bzToggle(el) {
-  var wrap = document.getElementById('bzNoteWrap');
-  if (el.classList.contains('active')) { el.classList.remove('active'); bzSel = ''; wrap.style.display = 'none'; document.getElementById('eBzNote').value = ''; return; }
-  document.querySelectorAll('#pageEvening .bz-item').forEach(function(c) { c.classList.remove('active'); });
-  el.classList.add('active'); bzSel = el.textContent; wrap.style.display = 'block';
-}
+function eDateInit() { var di = document.getElementById('eDateInput'); if (di && !di.value) di.value = tKey(); }
 
 // 从 Gist 拉取晚间数据
 function eLoadCloud() {
@@ -451,14 +436,15 @@ function eLoadCloud() {
 }
 
 function eSubmit() {
-  var k = tKey(); var d = eGet();
-  if (d[k] && !confirm('今天已打卡，覆盖吗？')) return;
+  var dateEl = document.getElementById('eDateInput');
+  var k = (dateEl && dateEl.value) ? dateEl.value : tKey();
+  var d = eGet();
+  if (d[k] && !confirm(k + ' 已打卡，覆盖吗？')) return;
   var bf = document.getElementById('eBodyFeel').value.trim();
   var em = document.getElementById('eEmotion').value.trim();
   var t = document.getElementById('eThought').value.trim();
-  var bn = document.getElementById('eBzNote').value.trim();
   if (!bf && !em && !t) { toast('写点什么再提交吧', 'toast-gold'); return; }
-  var entry = { date: k, day: eToday(), bazheng: bzSel, bazhengNote: bn, bodyFeel: bf, emotion: em, thought: t, timestamp: new Date().toISOString() };
+  var entry = { date: k, day: eDay(k), bodyFeel: bf, emotion: em, thought: t, timestamp: new Date().toISOString() };
   d[k] = entry; eSet(d);
   // 同步到 Gist
   cloudLoad().then(function(remote) {
@@ -469,12 +455,10 @@ function eSubmit() {
   }).then(function() {
     console.log('☁️ 晚间数据已存云端');
   });
-  toast('Day ' + eToday() + ' 已保存 ✓ 已存云端', 'toast-gold');
+  toast('Day ' + eDay(k) + ' 已保存 ✓ 已存云端', 'toast-gold');
   document.getElementById('eBodyFeel').value = '';
   document.getElementById('eEmotion').value = '';
   document.getElementById('eThought').value = '';
-  document.getElementById('eBzNote').value = '';
-  document.querySelectorAll('#pageEvening .bz-item').forEach(function(c) { c.classList.remove('active'); }); bzSel = ''; document.getElementById('bzNoteWrap').style.display = 'none';
   eRenderAll();
 }
 
@@ -528,7 +512,7 @@ function showETab(t) {
   else if (t === 'view') { document.getElementById('eTabView').classList.add('active-gold'); document.getElementById('ePanelView').classList.remove('hidden'); eCal(); }
   else { document.getElementById('eTabRecords').classList.add('active-gold'); document.getElementById('ePanelRecords').classList.remove('hidden'); eRec(); }
 }
-function eRenderAll() { eHeader(); if (!document.getElementById('ePanelView').classList.contains('hidden')) eCal(); if (!document.getElementById('ePanelRecords').classList.contains('hidden')) eRec(); }
+function eRenderAll() { eDateInit(); eHeader(); if (!document.getElementById('ePanelView').classList.contains('hidden')) eCal(); if (!document.getElementById('ePanelRecords').classList.contains('hidden')) eRec(); }
 
 // ===== Helpers =====
 function esc(s) { return s.replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
