@@ -183,12 +183,6 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 </div>
 <div id="ePanelCheck">
   <div class="card">
-    <div class="card-title c-title-gold"><span class="num">⭕</span>三界觉察</div>
-    <div class="form-group"><textarea id="eBodyFeel" class="ta-gold" placeholder="身体——今天身体发了什么信号？回应了吗？" rows="2"></textarea></div>
-    <div class="form-group"><textarea id="eEmotion" class="ta-gold" placeholder="情绪——此刻有什么情绪？" rows="2"></textarea></div>
-    <div class="form-group"><textarea id="eThought" class="ta-gold" placeholder="想法——此刻有什么想法？" rows="2"></textarea></div>
-  </div>
-  <div class="card">
     <div class="card-title c-title-gold"><span class="num">✨</span>今天八正道 <span style="font-size:11px;color:var(--dim)">（可选 · 点一条今天最有感的）</span></div>
     <div class="bz-grid">
       <div class="bz-item" onclick="bzToggle(this)">正见</div>
@@ -203,6 +197,12 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
     <div class="form-group" id="bzNoteWrap" style="display:none;margin-top:10px">
       <textarea id="eBzNote" class="ta-gold" rows="2" placeholder="今天这条上发生了什么？简单说两句，可不填"></textarea>
     </div>
+  </div>
+  <div class="card">
+    <div class="card-title c-title-gold"><span class="num">⭕</span>三界觉察</div>
+    <div class="form-group"><textarea id="eBodyFeel" class="ta-gold" placeholder="身体——今天身体发了什么信号？回应了吗？" rows="2"></textarea></div>
+    <div class="form-group"><textarea id="eEmotion" class="ta-gold" placeholder="情绪——此刻有什么情绪？" rows="2"></textarea></div>
+    <div class="form-group"><textarea id="eThought" class="ta-gold" placeholder="想法——此刻有什么想法？" rows="2"></textarea></div>
   </div>
   <button class="btn-submit btn-gold" onclick="eSubmit()">提交打卡 → 存云端</button>
 </div>
