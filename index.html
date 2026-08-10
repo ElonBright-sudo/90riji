@@ -53,6 +53,9 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .check-item.active-no{background:rgba(255,107,107,0.15);border-color:var(--red)}
 .check-item .emoji{font-size:22px;display:block;margin-bottom:4px}
 .check-item .label{font-size:11px;color:var(--dim)}
+.bz-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px}
+.bz-item{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;text-align:center;padding:10px 4px;cursor:pointer;transition:all 0.2s;user-select:none;font-size:13px;color:var(--text)}
+.bz-item.active{background:rgba(226,185,122,0.15);border-color:var(--gold);color:var(--gold)}
 .btn-submit{display:block;width:100%;padding:16px;border:none;border-radius:14px;font-size:17px;font-weight:600;cursor:pointer;letter-spacing:2px;margin-top:8px;transition:opacity 0.2s}
 .btn-submit:active{opacity:0.7}
 .btn-gold{background:var(--gold);color:var(--bg)}
@@ -184,6 +187,19 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
     <div class="form-group"><textarea id="eBodyFeel" class="ta-gold" placeholder="身体——今天身体发了什么信号？回应了吗？" rows="2"></textarea></div>
     <div class="form-group"><textarea id="eEmotion" class="ta-gold" placeholder="情绪——此刻有什么情绪？" rows="2"></textarea></div>
     <div class="form-group"><textarea id="eThought" class="ta-gold" placeholder="想法——此刻有什么想法？" rows="2"></textarea></div>
+  </div>
+  <div class="card">
+    <div class="card-title c-title-gold"><span class="num">✨</span>今天八正道 <span style="font-size:11px;color:var(--dim)">（可选 · 点一条今天最有感的）</span></div>
+    <div class="bz-grid">
+      <div class="bz-item" onclick="bzToggle(this)">正见</div>
+      <div class="bz-item" onclick="bzToggle(this)">正思维</div>
+      <div class="bz-item" onclick="bzToggle(this)">正语</div>
+      <div class="bz-item" onclick="bzToggle(this)">正业</div>
+      <div class="bz-item" onclick="bzToggle(this)">正命</div>
+      <div class="bz-item" onclick="bzToggle(this)">正精进</div>
+      <div class="bz-item" onclick="bzToggle(this)">正念</div>
+      <div class="bz-item" onclick="bzToggle(this)">正定</div>
+    </div>
   </div>
   <button class="btn-submit btn-gold" onclick="eSubmit()">提交打卡 → 存云端</button>
 </div>
@@ -412,6 +428,12 @@ function eToggle(el, v) {
   if (v === 'yes') el.classList.add('active-yes'); else el.classList.add('active-no');
   eAsked = v === 'yes' ? '问了' : v === 'no' ? '没问' : '忘了';
 }
+var bzSel = '';
+function bzToggle(el) {
+  if (el.classList.contains('active')) { el.classList.remove('active'); bzSel = ''; return; }
+  document.querySelectorAll('#pageEvening .bz-item').forEach(function(c) { c.classList.remove('active'); });
+  el.classList.add('active'); bzSel = el.textContent;
+}
 
 // 从 Gist 拉取晚间数据
 function eLoadCloud() {
@@ -431,7 +453,7 @@ function eSubmit() {
   var em = document.getElementById('eEmotion').value.trim();
   var t = document.getElementById('eThought').value.trim();
   if (!bf && !em && !t) { toast('写点什么再提交吧', 'toast-gold'); return; }
-  var entry = { date: k, day: eToday(), bodyFeel: bf, emotion: em, thought: t, timestamp: new Date().toISOString() };
+  var entry = { date: k, day: eToday(), bazheng: bzSel, bodyFeel: bf, emotion: em, thought: t, timestamp: new Date().toISOString() };
   d[k] = entry; eSet(d);
   // 同步到 Gist
   cloudLoad().then(function(remote) {
@@ -446,6 +468,7 @@ function eSubmit() {
   document.getElementById('eBodyFeel').value = '';
   document.getElementById('eEmotion').value = '';
   document.getElementById('eThought').value = '';
+  document.querySelectorAll('#pageEvening .bz-item').forEach(function(c) { c.classList.remove('active'); }); bzSel = '';
   eRenderAll();
 }
 
@@ -480,6 +503,7 @@ function eRec() {
     if (e.self) h += '<div>✦ ' + esc(e.self) + '</div>';
     if (e.body) h += '<div>✦ ' + esc(e.body) + '</div>';
     if (e.asked) h += '<div>✦ 问了自己吗：' + esc(e.asked) + '</div>';
+    if (e.bazheng) h += '<div>✨ 八正道：' + esc(e.bazheng) + '</div>';
     h += '</div>';
     if (e.bodyFeel || e.emotion || e.thought) {
       h += '<div class="sanjie">';
