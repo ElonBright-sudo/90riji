@@ -301,6 +301,12 @@ function mergeData(local, remote) {
   if (!remote) return c;
   for (var k in remote) {
     if (!local[k]) { local[k] = remote[k]; c++; }
+    else {
+      var ch = false;
+      if (remote[k].bazhengNote && !local[k].bazhengNote) { local[k].bazhengNote = remote[k].bazhengNote; ch = true; }
+      if (remote[k].self && !local[k].self) { local[k].self = remote[k].self; ch = true; }
+      if (ch) c++;
+    }
   }
   return c;
 }
