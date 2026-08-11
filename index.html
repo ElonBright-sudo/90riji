@@ -505,9 +505,10 @@ function eRec() {
     var dv = document.createElement('div'); dv.className = 'entry-item e-item';
     var h = '<div class="date">Day ' + (e.day || '?') + ' · ' + e.date + '</div><div class="content">';
     if (e.self) h += '<div>✦ ' + esc(e.self) + '</div>';
+    if (e.bazhengNote) h += '<div>✦ ' + esc(e.bazhengNote) + '</div>';
     if (e.body) h += '<div>✦ ' + esc(e.body) + '</div>';
     if (e.asked) h += '<div>✦ 问了自己吗：' + esc(e.asked) + '</div>';
-    if (e.bazheng) h += '<div>✨ 八正道：' + esc(e.bazheng) + (e.bazhengNote ? '——' + esc(e.bazhengNote) : '') + '</div>';
+    if (e.bazheng) h += '<div>✨ 八正道：' + esc(e.bazheng) + '</div>';
     h += '</div>';
     if (e.bodyFeel || e.emotion || e.thought) {
       h += '<div class="sanjie">';
